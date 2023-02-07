@@ -21,7 +21,9 @@ os(){
 
 check_file (){
     cd ${SRC_DIR}
-    rpm -q wget &> /dev/null || yum -y install wget &> /dev/null
+    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
+        rpm -q wget &> /dev/null || yum -y install wget &> /dev/null
+    fi
     if [ ! -e ${DOCKER_FILE} ];then
         ${COLOR}"缺少${DOCKER_FILE}文件,如果是离线包,请把文件放到${SRC_DIR}目录下"${END}
         ${COLOR}'开始下载DOCKER二进制安装包'${END}

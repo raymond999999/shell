@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-01-29
+#Date:          2023-03-05
 #FileName:      reset_v5_1.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 6/7/8 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -196,7 +196,7 @@ set_yum_rocky8_9_2(){
 
 set_yum_centos_stream9(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS

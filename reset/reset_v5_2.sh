@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-01-29
+#Date:          2023-03-05
 #FileName:      reset_v5_2.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 6/7/8 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -178,9 +178,65 @@ fedora(){
     URL=archives.fedoraproject.org
 }
 
-set_yum_rocky8_9(){
+set_yum_rocky9(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    cat > /etc/yum.repos.d/base.repo <<-EOF
+[BaseOS]
+name=BaseOS
+baseurl=https://${URL}/rocky/\$releasever/BaseOS/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+
+[AppStream]
+name=AppStream
+baseurl=https://${URL}/rocky/\$releasever/AppStream/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+
+[extras]
+name=extras
+baseurl=https://${URL}/rocky/\$releasever/extras/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+}
+
+set_yum_rocky9_2(){
+    [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    cat > /etc/yum.repos.d/base.repo <<-EOF
+[BaseOS]
+name=BaseOS
+baseurl=https://${URL}/rockylinux/\$releasever/BaseOS/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+
+[AppStream]
+name=AppStream
+baseurl=https://${URL}/rockylinux/\$releasever/AppStream/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+
+[extras]
+name=extras
+baseurl=https://${URL}/rockylinux/\$releasever/extras/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-\$releasever
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+}
+
+set_yum_rocky8(){
+    [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -206,9 +262,9 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-set_yum_rocky8_9_2(){
+set_yum_rocky8_2(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -236,7 +292,7 @@ EOF
 
 set_yum_centos_stream9(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -264,7 +320,7 @@ EOF
 
 set_yum_centos_stream8(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -292,7 +348,7 @@ EOF
 
 set_yum_centos8(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -360,8 +416,9 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
 }
 
-set_yum_centos7(){    [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+set_yum_centos7(){    
+    [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [base]
 name=base
@@ -431,7 +488,7 @@ EOF
 
 set_yum_centos6(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup
+    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [base]
 name=base
@@ -485,7 +542,7 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
 }
 
-rocky8_9_base_menu(){
+rocky9_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -503,27 +560,77 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_rocky8_9_2
+            set_yum_rocky9_2
             ;;
         2)
             netease
-            set_yum_rocky8_9
+            set_yum_rocky9
             ;;
         3)
             sohu
-            set_yum_rocky8_9
+            set_yum_rocky9
             ;;
         4)
             nju
-            set_yum_rocky8_9
+            set_yum_rocky9
             ;;
         5)
             ustc
-            set_yum_rocky8_9
+            set_yum_rocky9
             ;;
         6)
             sjtu
-            set_yum_rocky8_9
+            set_yum_rocky9
+            ;;
+        7)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-7)!"${END}
+            ;;
+        esac
+    done
+}
+
+rocky8_base_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)网易镜像源
+3)搜狐镜像源
+4)南京大学镜像源
+5)中科大镜像源
+6)上海交通大学镜像源
+7)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-7): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_yum_rocky8_2
+            ;;
+        2)
+            netease
+            set_yum_rocky8
+            ;;
+        3)
+            sohu
+            set_yum_rocky8
+            ;;
+        4)
+            nju
+            set_yum_rocky8
+            ;;
+        5)
+            ustc
+            set_yum_rocky8
+            ;;
+        6)
+            sjtu
+            set_yum_rocky8
             ;;
         7)
             break
@@ -953,7 +1060,11 @@ EOF
         read -p "请输入镜像源编号(1-3): " NUM
         case ${NUM} in
         1)
-            rocky8_9_base_menu
+            if [ ${OS_RELEASE_VERSION} == "8" ];then
+                rocky8_base_menu
+            else
+                rocky9_base_menu
+            fi
             ;;
         2)
             centos8_9_epel_menu

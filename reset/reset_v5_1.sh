@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-03-05
+#Date:          2023-03-21
 #FileName:      reset_v5_1.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 6/7/8 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -896,23 +896,12 @@ EOF
 }
 
 set_apt(){
-    mv /etc/apt/sources.list /etc/apt/sources.list.bak
-    cat > /etc/apt/sources.list <<-EOF
-deb http://${URL}/ubuntu/ $(lsb_release -cs) main restricted universe multiverse
-deb-src http://${URL}/ubuntu/ $(lsb_release -cs) main restricted universe multiverse
-
-deb http://${URL}/ubuntu/ $(lsb_release -cs)-security main restricted universe multiverse
-deb-src http://${URL}/ubuntu/ $(lsb_release -cs)-security main restricted universe multiverse
-
-deb http://${URL}/ubuntu/ $(lsb_release -cs)-updates main restricted universe multiverse
-deb-src http://${URL}/ubuntu/ $(lsb_release -cs)-updates main restricted universe multiverse
-
-deb http://${URL}/ubuntu/ $(lsb_release -cs)-proposed main restricted universe multiverse
-deb-src http://${URL}/ubuntu/ $(lsb_release -cs)-proposed main restricted universe multiverse
-
-deb http://${URL}/ubuntu/ $(lsb_release -cs)-backports main restricted universe multiverse
-deb-src http://${URL}/ubuntu/ $(lsb_release -cs)-backports main restricted universe multiverse
-EOF
+    OLD_URL=`sed -rn "s@^deb http://(.*)/ubuntu/? $(lsb_release -cs) main.*@\1@p" /etc/apt/sources.list`
+    sed -i.bak 's/'${OLD_URL}'/'${URL}'/g' /etc/apt/sources.list
+    if [ ${OS_RELEASE_VERSION} == "18" ];then
+	    SEC_URL=`sed -rn "s@^deb http://(.*)/ubuntu $(lsb_release -cs)-security main.*@\1@p" /etc/apt/sources.list`
+        sed -i.bak 's/'${SEC_URL}'/'${URL}'/g' /etc/apt/sources.list
+    fi
     ${COLOR}"更新镜像源中,请稍等..."${END}
     apt update &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} APT源设置完成!"${END}

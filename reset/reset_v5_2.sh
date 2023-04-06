@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-03-05
+#Date:          2023-04-06
 #FileName:      reset_v5_2.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 6/7/8 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -180,7 +180,7 @@ fedora(){
 
 set_yum_rocky9(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -208,7 +208,7 @@ EOF
 
 set_yum_rocky9_2(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -236,7 +236,7 @@ EOF
 
 set_yum_rocky8(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -264,7 +264,7 @@ EOF
 
 set_yum_rocky8_2(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -292,7 +292,7 @@ EOF
 
 set_yum_centos_stream9(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -320,7 +320,7 @@ EOF
 
 set_yum_centos_stream8(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -348,7 +348,7 @@ EOF
 
 set_yum_centos8(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -418,7 +418,7 @@ EOF
 
 set_yum_centos7(){    
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [base]
 name=base
@@ -488,7 +488,7 @@ EOF
 
 set_yum_centos6(){
     [ -d /etc/yum.repos.d/backup ] || mkdir /etc/yum.repos.d/backup
-    [ -e /etc/yum.repos.d/*.repo ] && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
+    (ls -l /etc/yum.repos.d/ |grep -q repo) && mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup || ${COLOR}"没有repo文件!"${END}
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [base]
 name=base

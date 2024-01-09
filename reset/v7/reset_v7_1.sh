@@ -3,11 +3,11 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-12-08
+#Date:          2024-01-09
 #FileName:      reset_v7_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   reset for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
-#Copyright (C): 2023 All rights reserved
+#Copyright (C): 2024 All rights reserved
 #***************************************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -25,14 +25,14 @@ set_rocky_centos_eth(){
         if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
             ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
         else
-		    # 修改网卡名称配置文件
+            # 修改网卡名称配置文件
             sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
             grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
 
             # 修改网卡文件名
             mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
             ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
-		    sleep 10 && shutdown -r now
+            sleep 10 && shutdown -r now
         fi   
     else
         ${COLOR}"${OS_ID} ${OS_RELEASE} 不能修改网卡名!"${END} 
@@ -41,7 +41,7 @@ set_rocky_centos_eth(){
 
 set_ubuntu_eth(){
     # 修改网卡名称配置文件
-	if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
+    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
@@ -952,10 +952,10 @@ EOF
             fi
             ;;
         2)
-            if [ ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
-                rocky_centos8_9_epel_menu
-            else
+            if [ ${OS_RELEASE_VERSION} == "7" ];then
                 centos7_epel_menu
+            else
+                rocky_centos8_9_epel_menu
             fi
             ;;
         3)

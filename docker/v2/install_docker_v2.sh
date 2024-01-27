@@ -3,7 +3,7 @@
 #********************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-01-09
+#Date:          2024-01-13
 #FileName:      install_docker_v2.sh
 #URL:           raymond.blog.csdn.net
 #Description:   install_docker for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -64,18 +64,22 @@ centos_install_docker(){
 
 mirror_accelerator(){
     mkdir -p /etc/docker
-    tee /etc/docker/daemon.json <<-'EOF'
+    cat > /etc/docker/daemon.json <<-EOF
 {
     "registry-mirrors": [
-        "https://l6strdex.mirror.aliyuncs.com",
-        "https://docker.mirrors.ustc.edu.cn",
-        "https://docker.m.daocloud.io",
         "https://registry.docker-cn.com",
-        "https://dockerhub.azk8s.cn",
-        "https://reg-mirror.qiniu.com",
-        "https://hub-mirror.c.163.com",
-        "https://mirror.ccs.tencentyun.com"
-    ]
+        "http://hub-mirror.c.163.com",
+        "https://docker.mirrors.ustc.edu.cn"
+    ],
+    "data-root": "/data/docker",
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "max-concurrent-downloads": 10,
+    "max-concurrent-uploads": 5,
+    "log-opts": {
+        "max-size": "300m",
+        "max-file": "2"  
+    },
+    "live-restore": true
 }
 EOF
     systemctl daemon-reload
@@ -91,6 +95,7 @@ set_alias(){
 
 set_swap_limit(){
     if [ ${OS_RELEASE_VERSION} == "18" -o ${OS_RELEASE_VERSION} == "20" ];then
+        grep -q "swapaccount=1" /etc/default/grub && { ${COLOR}'"WARNING: No swap limit support"警告,已设置'${END};exit; }
         ${COLOR}'设置Docker的"WARNING: No swap limit support"警告'${END}
         sed -ri '/^GRUB_CMDLINE_LINUX=/s@"$@ swapaccount=1"@' /etc/default/grub
         update-grub &> /dev/null

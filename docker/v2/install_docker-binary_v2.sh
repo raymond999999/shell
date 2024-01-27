@@ -3,11 +3,11 @@
 #*************************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-01-09
-#FileName:      install_docker_binary_v2.sh
+#Date:          2024-01-17
+#FileName:      install_docker-binary_v2.sh
 #URL:           raymond.blog.csdn.net
-#Description:   install_docker_binary CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
-#Copyright (C): 2021 All rights reserved
+#Description:   install_docker-binary for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
+#Copyright (C): 2024 All rights reserved
 #*************************************************************************************************************
 SRC_DIR=/usr/local/src
 COLOR="echo -e \\033[01;31m"
@@ -37,6 +37,9 @@ check_file (){
 install(){ 
     [ -f /usr/bin/docker ] && { ${COLOR}"Docker已存在，安装失败"${END};exit; }
     ${COLOR}"开始安装Docker，请稍等..."${END}
+    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
+        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
+    fi
     tar xf ${DOCKER_FILE} 
     mv docker/* /usr/bin/
     cat > /lib/systemd/system/docker.service <<-EOF
@@ -75,18 +78,22 @@ StartLimitInterval=60s
 WantedBy=multi-user.target
 EOF
     mkdir -p /etc/docker
-    tee /etc/docker/daemon.json <<-'EOF'
+    cat > /etc/docker/daemon.json <<-EOF
 {
     "registry-mirrors": [
-        "https://l6strdex.mirror.aliyuncs.com",
-        "https://docker.mirrors.ustc.edu.cn",
-        "https://docker.m.daocloud.io",
         "https://registry.docker-cn.com",
-        "https://dockerhub.azk8s.cn",
-        "https://reg-mirror.qiniu.com",
         "https://hub-mirror.c.163.com",
-        "https://mirror.ccs.tencentyun.com"
-    ]
+        "https://docker.mirrors.ustc.edu.cn"
+    ],
+    "data-root": "/data/docker",
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "max-concurrent-downloads": 10,
+    "max-concurrent-uploads": 5,
+    "log-opts": {
+        "max-size": "300m",
+        "max-file": "2"  
+    },
+    "live-restore": true
 }
 EOF
     echo 'alias rmi="docker images -qa|xargs docker rmi -f"' >> ~/.bashrc
@@ -99,6 +106,7 @@ EOF
 
 set_swap_limit(){
     if [ ${OS_RELEASE_VERSION} == "18" -o ${OS_RELEASE_VERSION} == "20" ];then
+        grep -q "swapaccount=1" /etc/default/grub && { ${COLOR}'"WARNING: No swap limit support"警告,已设置'${END};exit; }
         ${COLOR}'设置Docker的"WARNING: No swap limit support"警告'${END}
         sed -ri '/^GRUB_CMDLINE_LINUX=/s@"$@ swapaccount=1"@' /etc/default/grub
         update-grub &> /dev/null

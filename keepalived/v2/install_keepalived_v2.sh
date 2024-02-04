@@ -80,9 +80,6 @@ EOF
     else
         apt update &> /dev/null;apt -y install make gcc ipvsadm build-essential pkg-config automake autoconf iptables-dev libipset-dev libnl-3-dev libnl-genl-3-dev libssl-dev libxtables-dev libip4tc-dev libip6tc-dev libipset-dev libmagic-dev libsnmp-dev libglib2.0-dev libpcre2-dev libnftnl-dev libmnl-dev libsystemd-dev &> /dev/null
     fi
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
-        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
-    fi
     tar xf ${KEEPALIVED_FILE}
     KEEPALIVED_DIR=`echo ${KEEPALIVED_FILE} | sed -nr 's/^(.*[0-9]).*/\1/p'`
     cd ${KEEPALIVED_DIR}

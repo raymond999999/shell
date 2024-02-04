@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-01-09
+#Date:          2024-02-04
 #FileName:      reset_v7_2.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   reset for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -1646,6 +1646,7 @@ EOF
 }
 
 set_kernel(){
+    modprobe  br_netfilter
     cat > /etc/sysctl.conf <<-EOF
 # Controls source route verification
 net.ipv4.conf.default.rp_filter = 1
@@ -1706,7 +1707,6 @@ net.ipv4.tcp_retries2 = 15
 
 # tcp conn reuse
 net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_tw_recycle = 0
 net.ipv4.tcp_fin_timeout = 30
 net.ipv4.tcp_timestamps = 0
 
@@ -1731,6 +1731,13 @@ vm.swappiness = 10
 #net.ipv4.conf.all.arp_ignore = 1
 #net.ipv4.conf.all.arp_announce = 2
 EOF
+    MAIN_KERNEL=`uname -r | cut -d. -f1`
+    SUB_KERNEL=`uname -r | cut -d. -f2`
+    if [ ${MAIN_KERNEL} -lt "4" -a ${SUB_KERNEL} -lt "12" ];then
+    cat >> /etc/sysctl.conf <<-EOF	
+net.ipv4.tcp_tw_recycle = 0
+EOF
+    fi
     sysctl -p &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} 优化内核参数成功!"${END}
 }

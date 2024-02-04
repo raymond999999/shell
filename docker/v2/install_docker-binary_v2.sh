@@ -37,9 +37,6 @@ check_file (){
 install(){ 
     [ -f /usr/bin/docker ] && { ${COLOR}"Docker已存在，安装失败"${END};exit; }
     ${COLOR}"开始安装Docker，请稍等..."${END}
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
-        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
-    fi
     tar xf ${DOCKER_FILE} 
     mv docker/* /usr/bin/
     cat > /lib/systemd/system/docker.service <<-EOF

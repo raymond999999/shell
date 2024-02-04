@@ -46,14 +46,11 @@ check_file (){
 install_haproxy(){
     [ -d ${HAPROXY_INSTALL_DIR} ] && { ${COLOR}"Haproxy已存在，安装失败"${END};exit; }
     ${COLOR}"开始安装Haproxy"${END}
-    ${COLOR}"开始安装Haproxy依赖包"${END}
+    ${COLOR}"开始安装Haproxy依赖包，请稍等..."${END}
     if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
         yum -y install gcc make readline-devel openssl-devel pcre-devel systemd-devel zlib-devel &> /dev/null
     else
         apt update &> /dev/null;apt -y install gcc make libreadline-dev openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev libsystemd-dev &> /dev/null
-    fi
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
-        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
     fi
     tar xf ${LUA_FILE}
     LUA_DIR=`echo ${LUA_FILE} | sed -nr 's/^(.*[0-9]).([[:lower:]]).*/\1/p'`
@@ -120,7 +117,6 @@ net.ipv4.ip_nonlocal_bind = 1
 EOF
     sysctl -p &> /dev/null 
     [ -d /var/lib/haproxy/ ] || mkdir -p /var/lib/haproxy/ &> /dev/null
-    echo "PATH=${HAPROXY_INSTALL_DIR}/sbin:${PATH}" > /etc/profile.d/haproxy.sh
     useradd -r -s /sbin/nologin -d /var/lib/haproxy haproxy
     systemctl daemon-reload
     systemctl enable --now haproxy &> /dev/null

@@ -126,9 +126,6 @@ install_docker_compose(){
 install_harbor(){
     ${COLOR}"开始安装Harbor，请稍等..."${END}
     [ -d ${HARBOR_INSTALL_DIR} ] || mkdir ${HARBOR_INSTALL_DIR}
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
-        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
-    fi
     tar xf ${SRC_DIR}/${HARBOR_FILE}${HARBOR_VERSION}${TAR} -C ${HARBOR_INSTALL_DIR}/
 
     # 生成私钥和证书

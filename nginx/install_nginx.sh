@@ -46,9 +46,6 @@ install_nginx(){
         apt update &> /dev/null;apt -y install make gcc libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev &> /dev/null
     fi
     id nginx  &> /dev/null || { useradd -s /sbin/nologin -r nginx; ${COLOR}"创建Nginx用户"${END}; }
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
-        rpm -q tar &> /dev/null || { ${COLOR}"安装tar工具，请稍等..."${END};yum -y install tar &> /dev/null; }
-    fi
     tar xf ${NGINX_FILE}
     NGINX_DIR=`echo ${NGINX_FILE}| sed -nr 's/^(.*[0-9]).*/\1/p'`
     cd ${NGINX_DIR}

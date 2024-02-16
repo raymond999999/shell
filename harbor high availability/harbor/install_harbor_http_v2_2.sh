@@ -149,8 +149,8 @@ Documentation=http://github.com/vmware/harbor
 Type=simple
 Restart=on-failure
 RestartSec=5
-ExecStart=/usr/bin/docker-compose -f /apps/harbor/docker-compose.yml up
-ExecStop=/usr/bin/docker-compose -f /apps/harbor/docker-compose.yml down
+ExecStart=/usr/bin/docker-compose -f ${HARBOR_INSTALL_DIR}/harbor/docker-compose.yml up
+ExecStop=/usr/bin/docker-compose -f ${HARBOR_INSTALL_DIR}/harbor/docker-compose.yml down
 
 [Install]
 WantedBy=multi-user.target

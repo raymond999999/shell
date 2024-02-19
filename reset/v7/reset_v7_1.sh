@@ -631,7 +631,7 @@ set_epel_rocky_centos8_9(){
         fi
     fi
     if [ ${OS_RELEASE_VERSION} == "9" ];then
-        sed -i -e 's|^enabled=1|enabled=0|g' /etc/yum.repos.d/epel-cisco*.repo
+        dnf config-manager --set-disabled epel-cisco-openh264
     fi
     ${COLOR}"更新镜像源中,请稍等..."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null

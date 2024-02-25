@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-02-04
+#Date:          2024-02-25
 #FileName:      reset_v7_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   reset for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -431,6 +431,20 @@ EOF
     done
 }
 
+set_devel_rocky9(){
+    dnf config-manager --set-enabled devel
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null && dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
+}
+
+set_powertools_rocky_centos8(){
+    dnf config-manager --set-enabled powertools
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null && dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} powertools源设置完成!"${END}
+}
+
 set_yum_centos_stream9_perl(){
     ${COLOR}"由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
@@ -514,6 +528,13 @@ EOF
             ;;
         esac
     done
+}
+
+set_crb_centos9(){
+    dnf config-manager --set-enabled crb
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null && dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
 }
 
 set_yum_centos_stream8(){
@@ -902,11 +923,13 @@ rocky_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)退出
+3)启用Rocky 9 devel仓库
+4)启用Rocky 8 PowerTools仓库
+5)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-3): " NUM
+        read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
             rocky8_9_base_menu
@@ -915,10 +938,20 @@ EOF
             rocky_centos8_9_epel_menu
             ;;
         3)
+            if [ ${OS_RELEASE_VERSION} == "9" ];then
+                set_devel_rocky9
+            fi
+            ;;
+        4)
+            if [ ${OS_RELEASE_VERSION} == "8" ];then
+                set_powertools_rocky_centos8
+            fi
+            ;;
+        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-3)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
             ;;
         esac
     done
@@ -930,11 +963,13 @@ centos_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)退出
+3)启用CentOS Stream 9 crb仓库
+4)启用CentOS Stream 8 PowerTools仓库
+5)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-3): " NUM
+        read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
             if [ ${OS_NAME} == "Stream" ];then
@@ -959,10 +994,20 @@ EOF
             fi
             ;;
         3)
+            if [ ${OS_RELEASE_VERSION} == "9" ];then
+                set_crb_centos9
+            fi
+            ;;
+        4)
+            if [ ${OS_RELEASE_VERSION} == "8" ];then
+                set_powertools_rocky_centos8
+            fi
+            ;;
+        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-3)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
             ;;
         esac
     done

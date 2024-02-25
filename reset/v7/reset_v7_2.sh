@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-02-04
+#Date:          2024-02-25
 #FileName:      reset_v7_2.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   reset for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -904,6 +904,85 @@ EOF
     done
 }
 
+set_crb_centos_stream9(){
+    cat > /etc/yum.repos.d/crb.repo <<-EOF
+[crb]
+name=crb
+baseurl=https://${MIRROR}/centos-stream/\$releasever-stream/CRB/\$basearch/os
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
+}
+
+centos_stream9_crb_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)华为镜像源
+3)腾讯镜像源
+4)清华镜像源
+5)网易镜像源
+6)南京大学镜像源
+7)中科大镜像源
+8)北京大学镜像源
+9)西安交通大学镜像源
+10)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-10): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_crb_centos_stream9
+            ;;
+        2)
+            huawei
+            set_crb_centos_stream9
+            ;;
+        3)
+            tencent
+            set_crb_centos_stream9
+            ;;
+        4)
+            tuna
+            set_crb_centos_stream9
+            ;;
+        5)
+            netease
+            set_crb_centos_stream9
+            ;;
+        6)
+            nju
+            set_crb_centos_stream9
+            ;;
+        7)
+            ustc
+            set_crb_centos_stream9
+            ;;
+        8)
+            pku
+            set_crb_centos_stream9
+            ;;
+        9)
+            xjtu
+            set_crb_centos_stream9
+            ;;
+        10)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
+            ;;
+        esac
+    done
+}
+
 set_yum_centos_stream8(){
     [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
     cat > /etc/yum.repos.d/base.repo <<-EOF
@@ -1423,12 +1502,13 @@ centos_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)CentOS Stream 8 PowerTools仓库
-4)退出
+3)CentOS Stream 9 crb仓库
+4)CentOS Stream 8 PowerTools仓库
+5)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-4): " NUM
+        read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
             if [ ${OS_NAME} == "Stream" ];then
@@ -1449,15 +1529,20 @@ EOF
             fi
             ;;
         3)
+            if [ ${OS_RELEASE_VERSION} == "9" ];then
+                centos_stream9_crb_menu
+            fi
+            ;;
+        4)
             if [ ${OS_RELEASE_VERSION} == "8" ];then
                 centos_stream8_powertools_menu
             fi
             ;;
-        4)
+        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
             ;;
         esac
     done

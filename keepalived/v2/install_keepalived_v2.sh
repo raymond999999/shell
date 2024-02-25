@@ -87,7 +87,7 @@ EOF
     make -j $CPUS && make install
     [ $? -eq 0 ] && $COLOR"Keepalived编译安装成功"$END ||  { $COLOR"Keepalived编译安装失败,退出!"$END;exit; }
     [ -d /etc/keepalived ] || mkdir -p /etc/keepalived &> /dev/null
-    read -p "请输入是主服务断或备用服务端，例如（MASTER或BACKUP）: " STATE
+    read -p "请输入是主服务端或备用服务端，例如（MASTER或BACKUP）: " STATE
     read -p "请输入优先级，例如（100或80）: " PRIORITY
     cat > /etc/keepalived/keepalived.conf <<EOF
 ! Configuration File for keepalived

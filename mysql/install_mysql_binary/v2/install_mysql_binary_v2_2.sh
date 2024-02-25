@@ -4,9 +4,9 @@
 #Author:        Raymond
 #QQ:            88563128
 #Date:          2024-02-19
-#FileName:      install_mysql_v2_1.sh
+#FileName:      install_mysql_binary_v2_2.sh
 #URL:           raymond.blog.csdn.net
-#Description:   install_mysql for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
+#Description:   install_mysql_binary for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
 #Copyright (C): 2024 All rights reserved
 #************************************************************************************************************
 SRC_DIR=/usr/local/src
@@ -20,7 +20,6 @@ END='\033[0m'
 
 MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.0/
 MYSQL_FILE='mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz'
-MYSQL_ROOT_PASSWORD=123456
 
 os(){
     OS_ID=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
@@ -89,12 +88,13 @@ datadir=/data/mysql
 socket=/data/mysql/mysql.sock
 log-error=/data/mysql/mysql.log
 pid-file=/data/mysql/mysql.pid
+
 [client]
 socket=/data/mysql/mysql.sock
 EOF
     [ -d /data/mysql ] || mkdir -p /data/mysql &> /dev/null
     chown -R  mysql.mysql /data/mysql
-    mysqld --initialize --user=mysql --datadir=/data/mysql
+    mysqld --initialize-insecure --user=mysql --datadir=/data/mysql
     if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
         rpm -q chkconfig &> /dev/null || { ${COLOR}"安装chkconfig包，请稍等..."${END};yum -y install chkconfig &> /dev/null; }
     fi
@@ -131,8 +131,6 @@ EOF
     systemctl daemon-reload
     systemctl enable --now mysqld &> /dev/null
     [ $? -ne 0 ] && { ${COLOR}"数据库启动失败，退出!"${END};exit; }
-    MYSQL_OLDPASSWORD=`awk '/A temporary password/{print $NF}' /data/mysql/mysql.log`
-    mysqladmin  -uroot -p${MYSQL_OLDPASSWORD} password ${MYSQL_ROOT_PASSWORD} &>/dev/null
     ${COLOR}"MySQL数据库安装完成"${END}
 }
 

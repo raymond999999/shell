@@ -18,6 +18,7 @@ END='\033[0m'
 # mysql 8.0.36 glibc2.17包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.0/mysql-8.0.36-linux-glibc2.17-x86_64.tar.xz"
 # mysql 5.7.44 glibc2.12包下载地址："https://cdn.mysql.com/archives/mysql-5.7/mysql-5.7.44-linux-glibc2.12-x86_64.tar.gz"
 
+DATA_DIR=/data/mysql
 MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.0/
 MYSQL_FILE='mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz'
 
@@ -84,17 +85,17 @@ EOF
 [mysqld]
 server-id=1
 log-bin
-datadir=/data/mysql
-socket=/data/mysql/mysql.sock
-log-error=/data/mysql/mysql.log
-pid-file=/data/mysql/mysql.pid
+datadir=${DATA_DIR}
+socket=${DATA_DIR}/mysql.sock
+log-error=${DATA_DIR}/mysql.log
+pid-file=${DATA_DIR}/mysql.pid
 
 [client]
-socket=/data/mysql/mysql.sock
+socket=${DATA_DIR}/mysql.sock
 EOF
-    [ -d /data/mysql ] || mkdir -p /data/mysql &> /dev/null
-    chown -R  mysql.mysql /data/mysql
-    mysqld --initialize-insecure --user=mysql --datadir=/data/mysql
+    [ -d ${DATA_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
+    chown -R  mysql.mysql ${DATA_DIR}
+    mysqld --initialize-insecure --user=mysql --datadir=${DATA_DIR}
     if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ] &> /dev/null;then
         rpm -q chkconfig &> /dev/null || { ${COLOR}"安装chkconfig包，请稍等..."${END};yum -y install chkconfig &> /dev/null; }
     fi

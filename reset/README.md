@@ -1,4 +1,4 @@
-# CentOS、Ubuntu、Rocky系统初始化脚本
+# Rocky、CentOS和Ubuntu系统初始化脚本
 
 **支持的功能和系统：**
 

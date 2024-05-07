@@ -1,4 +1,4 @@
-# Rocky、CentOS和Ubuntu系统初始化脚本
+# Rocky、Almalinux、CentOS和Ubuntu系统初始化脚本
 
 **Shell脚本源码地址：**
 

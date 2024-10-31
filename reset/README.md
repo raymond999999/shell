@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS和Ubuntu系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu和Debian系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -7,19 +7,32 @@ Gitee：https://gitee.com/raymond9/shell
 Github：https://github.com/raymond999999/shell
 ```
 
-可以去上面的Gitee或Github仓库代码拉取脚本。
+脚本可以去上面的Gitee或Github代码仓库拉取。
 
 **支持的功能和系统：**
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、修改IP地址和网关地址（单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启、Ubuntu设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8和9、Ubuntu 18.04/20.04/22.04 |
+| 修改网卡名、修改IP地址和网关地址（单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8和9、Ubuntu 18.04/20.04/22.04/24.04、Debian 12 |
+
+**v1和v2版本的区别：**
+
+v1和v2版本实现的功能都是一样的，只是实现的方式不同。
+
+| v1                                                           | v2                                                           |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 1.Rocky、Almalinux、CentOS系统修改ip地址采用nmcli命令方式；  | 1.Rocky、Almalinux、CentOS系统修改ip地址采用的是配置文件方式； |
+| 2.Rocky、Almalinux、CentOS、Ubuntu和Debian系统修改镜像仓库采用sed直接替换网址方式。 | 2.Rocky、Almalinux、CentOS、Ubuntu和Debian系统修改镜像仓库采用的是配置文件方式。 |
 
 **版本更新日志：**
 
 | 版本         | 功能                                                         |
 | ------------ | ------------------------------------------------------------ |
-| v8版更新内容 | 1.添加对AlmaLinux 8和9系统的支持；                           |
+| v9版更新内容 | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
+|              | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
+|              | 3.添加了对Debian 12系统的支持；                              |
+|              | 4.修改了某些bug。                                            |
+| v8版更新内容 | 1.添加了对AlmaLinux 8和9系统的支持；                         |
 |              | 2.添加Ubuntu卸载snap的功能；                                 |
 |              | 3.修改了某些bug。                                            |
 | v7版更新内容 | 1.由于v6版修改的比较仓促，其中设置镜像仓库有bug，修复了其中的bug，而且设置镜像仓库可以重复修改；修复了设置ip不能成功的bug；优化了设置系统别名的bug；修复了“优化内核参数”的bug； |
@@ -43,3 +56,181 @@ Github：https://github.com/raymond999999/shell
 |              | 3.优化Ubuntu 20.04禁用swap不生效的问题。                     |
 | v1版支持功能 | 1.支持CentOS 6/7/8、Ubuntu 18.04/20.04、Rocky 8系统；        |
 |              | 2.支持功能禁用SELinux、关闭防火墙、优化SSH、设置系统别名、设置vimrc配置文件、设置软件包仓库、Minimal安装建议安装软件、安装邮件服务并配置邮件、更改SSH端口号、修改网卡名、修改IP地址和网关地址、设置主机名、设置PS1和系统环境变量、禁用SWAP、优化内核参数、优化资源限制参数、Ubuntu设置root用户登录、Ubuntu卸载无用软件包。 |
+
+**reset脚本的使用过程中的注意事项：**
+
+1. 首先说明，脚本必须在root用户下使用。
+
+   ```bash
+   # Rocky、Almalinux、和CentOS默认可以使用root用户登录不用设置，Ubuntu和Debian必须先设置root用户登录。
+   # 先安装lrzsz工具，把脚本传上去
+   raymond@ubuntu2404:~$ sudo apt -y install lrzsz
+   raymond@ubuntu2404:~$ rz -E
+   rz waiting to receive.
+   
+   # 使用bash命令运行脚本
+   raymond@ubuntu2404:~$ bash reset_v9_1.sh 
+   
+   **********************************************************************
+   *                           初始化脚本菜单                           *
+   * 1.修改网卡名                     15.设置系统别名                   *
+   * 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
+   * 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
+   * 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
+   * 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
+   * 6.Minimal安装建议安装软件        20.设置history格式                *
+   * 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
+   * 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
+   * 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
+   * 10.设置系统时区                  24.Ubuntu卸载snap                 *
+   * 11.优化资源限制参数              25.重启系统                       *
+   * 12.优化内核参数                  26.关机                           *
+   * 13.优化SSH                       27.退出                           *
+   * 14.更改SSH端口号                                                   *
+   **********************************************************************
+   
+   请选择相应的编号(1-27): 22 # 输入22，设置root用户登录
+   请输入密码: 123456 # 输入密码
+   New password: Retype new password: passwd: password updated successfully
+   Ubuntu 24.04 root用户登录已设置完成,请重新登录后生效!
+   
+   **********************************************************************
+   *                           初始化脚本菜单                           *
+   * 1.修改网卡名                     15.设置系统别名                   *
+   * 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
+   * 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
+   * 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
+   * 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
+   * 6.Minimal安装建议安装软件        20.设置history格式                *
+   * 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
+   * 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
+   * 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
+   * 10.设置系统时区                  24.Ubuntu卸载snap                 *
+   * 11.优化资源限制参数              25.重启系统                       *
+   * 12.优化内核参数                  26.关机                           *
+   * 13.优化SSH                       27.退出                           *
+   * 14.更改SSH端口号                                                   *
+   **********************************************************************
+   
+   请选择相应的编号(1-27): 27 # 退出脚本
+   
+   # 然后用root用户登录
+   [C:\~]$ ssh root:123456@172.31.7.2
+   
+   # 把脚本从普通用户家目录移到root用户家目录，再继续后面步骤。
+   root@ubuntu2404:~# mv /home/raymond/reset_v9_1.sh .
+   ```
+
+2. CentOS Stream 9如果使用v1版本修改镜像源需要注意的地方。
+
+   ```bash
+   # 先安装lrzsz工具，把脚本传上去
+   [root@centos9 ~]# dnf -y install lrzsz
+   [root@centos9 ~]# rz -E
+   rz waiting to receive.
+   [root@centos9 ~]# ls
+   anaconda-ks.cfg  reset_v9_1.sh
+   
+   [root@centos9 ~]# bash reset_v9_1.sh 
+   
+   **********************************************************************
+   *                           初始化脚本菜单                           *
+   * 1.修改网卡名                     15.设置系统别名                   *
+   * 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
+   * 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
+   * 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
+   * 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
+   * 6.Minimal安装建议安装软件        20.设置history格式                *
+   * 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
+   * 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
+   * 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
+   * 10.设置系统时区                  24.Ubuntu卸载snap                 *
+   * 11.优化资源限制参数              25.重启系统                       *
+   * 12.优化内核参数                  26.关机                           *
+   * 13.优化SSH                       27.退出                           *
+   * 14.更改SSH端口号                                                   *
+   **********************************************************************
+   
+   请选择相应的编号(1-27): 5
+   
+   1)base仓库
+   2)epel仓库
+   3)启用CentOS Stream 9 crb仓库
+   4)启用CentOS Stream 8 PowerTools仓库
+   5)退出
+   
+   请输入镜像源编号(1-5): 1
+   由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
+   缺少update_mirror.pl文件 # 这里提示“缺少update_mirror.pl文件”，上面的提示也写得很清楚，需要把这个文件也传到系统里
+   
+   [root@centos9 ~]# rz -E
+   rz waiting to receive.
+   [root@centos9 ~]# ls
+   anaconda-ks.cfg  reset_v9_1.sh  update_mirror.pl
+   
+   [root@centos9 ~]# bash reset_v9_1.sh 
+   
+   **********************************************************************
+   *                           初始化脚本菜单                           *
+   * 1.修改网卡名                     15.设置系统别名                   *
+   * 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
+   * 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
+   * 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
+   * 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
+   * 6.Minimal安装建议安装软件        20.设置history格式                *
+   * 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
+   * 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
+   * 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
+   * 10.设置系统时区                  24.Ubuntu卸载snap                 *
+   * 11.优化资源限制参数              25.重启系统                       *
+   * 12.优化内核参数                  26.关机                           *
+   * 13.优化SSH                       27.退出                           *
+   * 14.更改SSH端口号                                                   *
+   **********************************************************************
+   
+   请选择相应的编号(1-27): 5
+   
+   1)base仓库
+   2)epel仓库
+   3)启用CentOS Stream 9 crb仓库
+   4)启用CentOS Stream 8 PowerTools仓库
+   5)退出
+   
+   请输入镜像源编号(1-5): 1
+   由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
+   update_mirror.pl文件已准备好，继续后续配置！ # 现在这里提示“update_mirror.pl文件已准备好，继续后续配置！”。
+   安装perl工具,请稍等...
+   更新镜像源中,请稍等...
+   CentOS 9 YUM源设置完成!
+   
+   1)base仓库
+   2)epel仓库
+   3)启用CentOS Stream 9 crb仓库
+   4)启用CentOS Stream 8 PowerTools仓库
+   5)退出
+   
+   请输入镜像源编号(1-5): 5
+   
+   **********************************************************************
+   *                           初始化脚本菜单                           *
+   * 1.修改网卡名                     15.设置系统别名                   *
+   * 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
+   * 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
+   * 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
+   * 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
+   * 6.Minimal安装建议安装软件        20.设置history格式                *
+   * 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
+   * 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
+   * 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
+   * 10.设置系统时区                  24.Ubuntu卸载snap                 *
+   * 11.优化资源限制参数              25.重启系统                       *
+   * 12.优化内核参数                  26.关机                           *
+   * 13.优化SSH                       27.退出                           *
+   * 14.更改SSH端口号                                                   *
+   **********************************************************************
+   
+   请选择相应的编号(1-27): 27
+   ```
+
+3. 其它功能根据需求选择，如果有需要输入的根据提示输入即可，这里不再一一演示。
+

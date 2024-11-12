@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-10-31
+#Date:          2024-11-12
 #FileName:      reset_v9_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
@@ -28,11 +28,9 @@ set_rocky_almalinux_centos_eth(){
         if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
             ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
         else
-            # 修改网卡名称配置文件
             sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
             grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
 
-            # 修改网卡文件名
             mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
             ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
             sleep 10 && shutdown -r now
@@ -43,7 +41,6 @@ set_rocky_almalinux_centos_eth(){
 }
 
 set_ubuntu_debian_eth(){
-    # 修改网卡名称配置文件
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
@@ -78,7 +75,7 @@ check_ip(){
     fi
 }
 
-set_rocky_almalinux_centos_ip(){
+set_rocky_almalinux_centos_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
     while true; do
@@ -102,7 +99,7 @@ set_rocky_almalinux_centos_ip(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功，请使用新IP重新登录!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
         nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME} && \
         nmcli connection delete ${ETHNAME} >& /dev/null && \
@@ -115,7 +112,7 @@ set_rocky_almalinux_centos_ip(){
     fi
 }
 
-set_ubuntu_ip(){
+set_ubuntu_network(){
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -198,10 +195,10 @@ network:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
     fi    
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
-set_debian_ip(){
+set_debian_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
@@ -230,20 +227,20 @@ address ${IP}/${PREFIX}
 gateway ${GATEWAY}
 dns-nameservers ${PRIMARY_DNS} ${BACKUP_DNS}
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
-set_ip(){
+set_network(){
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        set_rocky_almalinux_centos_ip
+        set_rocky_almalinux_centos_network
     elif [ ${OS_ID} == "Ubuntu" ];then
-        set_ubuntu_ip
+        set_ubuntu_network
     else
-        set_debian_ip
+        set_debian_network
     fi
 }
 
-set_dual_rocky_almalinux_centos_ip(){
+set_dual_rocky_almalinux_centos_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     CONNECTION_NAME1=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
@@ -275,7 +272,7 @@ set_dual_rocky_almalinux_centos_ip(){
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功，请使用新IP重新登录!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
         nmcli connection modify "${CONNECTION_NAME1}" con-name ${ETHNAME} && nmcli connection delete ${ETHNAME} >& /dev/null && \
 		nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
@@ -291,7 +288,7 @@ set_dual_rocky_almalinux_centos_ip(){
     fi
 }
 
-set_dual_ubuntu_ip(){
+set_dual_ubuntu_network(){
     while true; do
         read -p "请输入第一块网卡IP地址: " IP
         check_ip ${IP}
@@ -396,10 +393,10 @@ network:
       addresses: [${IP2}/${PREFIX2}] 
 EOF
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
-set_dual_debian_ip(){
+set_dual_debian_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入第一块网卡IP地址: " IP
@@ -438,16 +435,16 @@ auto eth1
 iface eth1 inet static
 address ${IP2}/${PREFIX2}
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} IP地址、网关地址和DNS已修改成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
-set_dual_ip(){
+set_dual_network(){
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        set_dual_rocky_almalinux_centos_ip
+        set_dual_rocky_almalinux_centos_network
     elif [ ${OS_ID} == "Ubuntu" ];then
-        set_dual_ubuntu_ip
+        set_dual_ubuntu_network
     else
-        set_dual_debian_ip
+        set_dual_debian_network
     fi
 }
 
@@ -513,7 +510,7 @@ archive_fedora(){
     MIRROR=archives.fedoraproject.org
 }
 
-set_yum_rocky8_9(){
+set_yum_rocky_8_9(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
     OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
@@ -553,7 +550,7 @@ set_yum_rocky8_9(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-rocky8_9_base_menu(){
+rocky_8_9_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -574,39 +571,39 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         2)
             tencent
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         3)
             netease
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         4)
             sohu
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         5)
             nju
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         6)
             ustc
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         7)
             sjtu
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         8)
             xjtu
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         9)
             pku
-            set_yum_rocky8_9
+            set_yum_rocky_8_9
             ;;
         10)
             break
@@ -618,21 +615,21 @@ EOF
     done
 }
 
-set_devel_rocky9(){
+set_devel_rocky_9(){
     dnf config-manager --set-enabled devel
     ${COLOR}"更新镜像源中,请稍等..."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
 }
 
-set_powertools_rocky_almalinux_centos8(){
+set_powertools_rocky_almalinux_centos_8(){
     dnf config-manager --set-enabled powertools
     ${COLOR}"更新镜像源中,请稍等..."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} powertools源设置完成!"${END}
 }
 
-set_yum_almalinux8_9(){
+set_yum_almalinux_8_9(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/almalinux*.repo | head -1)
     sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^# baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/almalinux*.repo
     ${COLOR}"更新镜像源中,请稍等..."${END}
@@ -640,7 +637,7 @@ set_yum_almalinux8_9(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-almalinux8_9_base_menu(){
+almalinux_8_9_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -657,23 +654,23 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_almalinux8_9
+            set_yum_almalinux_8_9
             ;;
         2)
             tencent
-            set_yum_almalinux8_9
+            set_yum_almalinux_8_9
             ;;
         3)
             nju
-            set_yum_almalinux8_9
+            set_yum_almalinux_8_9
             ;;
         4)
             sjtu
-            set_yum_almalinux8_9
+            set_yum_almalinux_8_9
             ;;
         5)
             pku
-            set_yum_almalinux8_9
+            set_yum_almalinux_8_9
             ;;
         6)
             break
@@ -685,7 +682,7 @@ EOF
     done
 }
 
-set_yum_centos_stream9_perl(){
+set_yum_centos_stream_9_perl(){
     ${COLOR}"由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
     PERL_FILE=update_mirror.pl
@@ -702,7 +699,7 @@ set_yum_centos_stream9_perl(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-set_yum_centos_stream9(){
+set_yum_centos_stream_9(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever-stream/.*/$@\1@p' /etc/yum.repos.d/centos*.repo | head -1)
     sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/centos*.repo
     ${COLOR}"更新镜像源中,请稍等..."${END}
@@ -730,35 +727,35 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         2)
             huawei
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         3)
             tencent
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         4)
             tuna
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         5)
             nju
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         6)
             ustc
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         7)
             bfsu
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         8)
             pku
-            set_yum_centos_stream9
+            set_yum_centos_stream_9
             ;;
         9)
             break
@@ -770,14 +767,14 @@ EOF
     done
 }
 
-set_crb_almalinux_centos9(){
+set_crb_almalinux_centos_9(){
     dnf config-manager --set-enabled crb
     ${COLOR}"更新镜像源中,请稍等..."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
 }
 
-set_yum_centos_stream8(){
+set_yum_centos_stream_8(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$stream/.*/$@\1@p' /etc/yum.repos.d/CentOS-*.repo | head -1)
     OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$stream/.*/$@\2@p' /etc/yum.repos.d/CentOS-*.repo | head -1)
     if [ ${OLD_DIR} == '$contentdir' ];then
@@ -790,7 +787,7 @@ set_yum_centos_stream8(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-centos_stream8_base_menu(){
+centos_stream_8_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -810,35 +807,35 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         2)
             huawei
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         3)
             tencent
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         4)
             tuna
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         5)
             nju
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         6)
             ustc
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         7)
             bfsu
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         8)
             pku
-            set_yum_centos_stream8
+            set_yum_centos_stream_8
             ;;
         9)
             break
@@ -850,7 +847,7 @@ EOF
     done
 }
 
-set_epel_rocky_almalinux_centos8_9(){
+set_epel_rocky_almalinux_centos_8_9(){
     rpm -q epel-release &> /dev/null || { ${COLOR}"安装epel-release工具,请稍等..."${END};yum -y install epel-release &> /dev/null; }
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/epel*.repo | head -1)
@@ -896,7 +893,7 @@ set_epel_rocky_almalinux_centos8_9(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
 }
 
-rocky_almalinux_centos8_9_epel_menu(){
+rocky_almalinux_centos_8_9_epel_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -919,47 +916,47 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         2)
             huawei
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         3)
             tencent
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         4)
             tuna
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         5)
             sohu
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         6)
             nju
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         7)
             ustc
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         8)
             sjtu
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         9)
             xjtu
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         10)
             bfsu
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         11)
             pku
-            set_epel_rocky_almalinux_centos8_9
+            set_epel_rocky_almalinux_centos_8_9
             ;;
         12)
             break
@@ -971,7 +968,7 @@ EOF
     done
 }
 
-set_yum_centos7(){
+set_yum_centos_7(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=(http.*)://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/CentOS-*.repo | head -1)
     OS_RELEASE_FULL_VERSION=`cat /etc/centos-release | sed -rn 's/^(CentOS Linux release )(.*)( \(Core\))/\2/p'`
     if grep -Eqi "^#baseurl" /etc/yum.repos.d/CentOS-*.repo;then
@@ -1004,35 +1001,35 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         2)
             huawei
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         3)
             tencent
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         4)
             tuna
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         5)
             nju
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         6)
             ustc
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         7)
             bfsu
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         8)
             pku
-            set_yum_centos7
+            set_yum_centos_7
             ;;
         9)
             break
@@ -1044,7 +1041,7 @@ EOF
     done
 }
 
-set_epel_centos7(){
+set_epel_centos_7(){
     rpm -q epel-release &> /dev/null || { ${COLOR}"安装epel-release工具,请稍等..."${END};yum -y install epel-release &> /dev/null; }
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/epel*.repo | head -1)
@@ -1086,15 +1083,15 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_epel_centos7
+            set_epel_centos_7
             ;;
         2)
             tencent
-            set_epel_centos7
+            set_epel_centos_7
             ;;
         3)
             archive_fedora
-            set_epel_centos7
+            set_epel_centos_7
             ;;
         4)
             break
@@ -1121,21 +1118,21 @@ EOF
         read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
-            rocky8_9_base_menu
+            rocky_8_9_base_menu
             ;;
         2)
-            rocky_almalinux_centos8_9_epel_menu
+            rocky_almalinux_centos_8_9_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
-                set_devel_rocky9
+                set_devel_rocky_9
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有devel源，不用设置!"${END}
             fi
             ;;
         4)
             if [ ${OS_RELEASE_VERSION} == "8" ];then
-                set_powertools_rocky_almalinux_centos8
+                set_powertools_rocky_almalinux_centos_8
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
             fi
@@ -1165,21 +1162,21 @@ EOF
         read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
-            almalinux8_9_base_menu
+            almalinux_8_9_base_menu
             ;;
         2)
-            rocky_almalinux_centos8_9_epel_menu
+            rocky_almalinux_centos_8_9_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
-                set_crb_almalinux_centos9
+                set_crb_almalinux_centos_9
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
             fi
             ;;
         4)
             if [ ${OS_RELEASE_VERSION} == "8" ];then
-                set_powertools_rocky_almalinux_centos8
+                set_powertools_rocky_almalinux_centos_8
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
             fi
@@ -1211,12 +1208,12 @@ EOF
         1)
             if [ ${OS_NAME} == "Stream" ];then
                 if [ ${OS_RELEASE_VERSION} == "8" ];then
-                    centos_stream8_base_menu
+                    centos_stream_8_base_menu
                 else
                     if grep -Eqi "^baseurl" /etc/yum.repos.d/centos*.repo;then
-                        centos_stream9_base_menu
+                        centos_stream_9_base_menu
                     else
-                        set_yum_centos_stream9_perl
+                        set_yum_centos_stream_9_perl
                     fi
                 fi
             else
@@ -1225,21 +1222,21 @@ EOF
             ;;
         2)
             if [ ${OS_RELEASE_VERSION} == "7" ];then
-                centos7_epel_menu
+                centos_7_epel_menu
             else
-                rocky_almalinux_centos8_9_epel_menu
+                rocky_almalinux_centos_8_9_epel_menu
             fi
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
-                set_crb_almalinux_centos9
+                set_crb_almalinux_centos_9
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
             fi
             ;;
         4)
             if [ ${OS_RELEASE_VERSION} == "8" ];then
-                set_powertools_rocky_almalinux_centos8
+                set_powertools_rocky_almalinux_centos_8
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
             fi
@@ -1483,7 +1480,7 @@ minimal_install(){
     fi
 }
 
-disable_firewall(){
+disable_firewalls(){
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
         rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} Firewall防火墙已关闭!"${END}; } || ${COLOR}"${OS_ID} ${OS_RELEASE} iptables防火墙已关闭!"${END}
     elif [ ${OS_ID} == "Ubuntu" ];then
@@ -1519,7 +1516,7 @@ set_swap(){
 }
 
 set_localtime(){
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    timedatectl set-timezone Asia/Shanghai
     echo 'Asia/Shanghai' >/etc/timezone
     if [ ${OS_ID} == "Ubuntu" ];then
         cat >> /etc/default/locale <<-EOF
@@ -1642,7 +1639,7 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} 优化内核参数成功!"${END}
 }
 
-optimization_sshd(){
+optimization_ssh(){
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
         sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     else
@@ -1658,7 +1655,7 @@ optimization_sshd(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} SSH已优化完成!"${END}
 }
 
-set_sshd_port(){
+set_ssh_port(){
     disable_selinux
     disable_firewall
     read -p "请输入端口号: " PORT
@@ -1676,8 +1673,8 @@ set_sshd_port(){
 set_rocky_almalinux_centos_alias(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    read -p "请输入网卡数量（仅支持1个和2个网卡，输入1或2）: " IP_NUM
-    if [ ${IP_NUM} == "1" ];then
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
         if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
             cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
@@ -2041,23 +2038,23 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-**********************************************************************
-*                           初始化脚本菜单                           *
-* 1.修改网卡名                     15.设置系统别名                   *
-* 2.修改IP地址和网关地址(单网卡)   16.设置vimrc配置文件              *
-* 3.修改IP地址和网关地址(双网卡)   17.安装邮件服务并配置邮件         *
-* 4.设置主机名                     18.设置PS1(请进入选择颜色)        *
-* 5.设置镜像仓库                   19.设置默认文本编辑器为vim        *
-* 6.Minimal安装建议安装软件        20.设置history格式                *
-* 7.关闭防火墙                     21.禁用ctrl+alt+del重启           *
-* 8.禁用SELinux                    22.Ubuntu和Debian设置root用户登录 *
-* 9.禁用SWAP                       23.Ubuntu卸载无用软件包           *
-* 10.设置系统时区                  24.Ubuntu卸载snap                 *
-* 11.优化资源限制参数              25.重启系统                       *
-* 12.优化内核参数                  26.关机                           *
-* 13.优化SSH                       27.退出                           *
-* 14.更改SSH端口号                                                   *
-**********************************************************************
+******************************************************************
+*                     系统初始化脚本菜单                         *
+* 1.修改网卡名                 15.设置系统别名                   *
+* 2.设置网络(单网卡)           16.设置vimrc配置文件              *
+* 3.设置网络(双网卡)           17.安装邮件服务并配置邮件         *
+* 4.设置主机名                 18.设置PS1(请进入选择颜色)        *
+* 5.设置镜像仓库               19.设置默认文本编辑器为vim        *
+* 6.Minimal安装建议安装软件    20.设置history格式                *
+* 7.关闭防火墙                 21.禁用ctrl+alt+del重启           *
+* 8.禁用SELinux                22.Ubuntu和Debian设置root用户登录 *
+* 9.禁用SWAP                   23.Ubuntu卸载无用软件包           *
+* 10.设置系统时区              24.Ubuntu卸载snap                 *
+* 11.优化资源限制参数          25.重启系统                       *
+* 12.优化内核参数              26.关机                           *
+* 13.优化SSH                   27.退出                           *
+* 14.更改SSH端口号                                               *
+******************************************************************
 EOF
         echo -e '\E[0m'
 
@@ -2067,10 +2064,10 @@ EOF
             set_eth
             ;;
         2)
-            set_ip
+            set_network
             ;;
         3)
-            set_dual_ip
+            set_dual_network
             ;;
         4)
             set_hostname
@@ -2082,7 +2079,7 @@ EOF
             minimal_install
             ;;
         7)
-            disable_firewall
+            disable_firewalls
             ;;
         8)
             disable_selinux
@@ -2100,10 +2097,10 @@ EOF
             set_kernel
             ;;
         13)
-            optimization_sshd
+            optimization_ssh
             ;;
         14)
-            set_sshd_port
+            set_ssh_port
             ;;
         15)
             set_alias

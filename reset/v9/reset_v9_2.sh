@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-11-12
+#Date:          2024-11-17
 #FileName:      reset_v9_2.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
@@ -2331,7 +2331,8 @@ disable_selinux(){
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
         if [ `getenforce` == "Enforcing" ];then
             sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
-            ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已禁用,请重新启动系统后才能生效!"${END}
+            setenforce 0
+            ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已禁用,请重新启动系统后才能永久生效!"${END}
         else
             ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已被禁用,不用设置!"${END}
         fi
@@ -2494,7 +2495,7 @@ optimization_ssh(){
 
 set_ssh_port(){
     disable_selinux
-    disable_firewall
+    disable_firewalls
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
     if [ ${OS_ID} == "Ubuntu" ];then
@@ -2607,12 +2608,12 @@ func SetTitle()
     if expand("%:e") == 'sh'
     call setline(1,"#!/bin/bash")
     call setline(2,"#")
-    call setline(3,"#**********************************************************************************************")
+    call setline(3,"#*********************************************************************************************")
     call setline(4,"#Author:        ${AUTHOR}")
     call setline(5,"#QQ:            ${QQ}")
     call setline(6,"#Date:          ".strftime("%Y-%m-%d"))
     call setline(7,"#FileName:      ".expand("%"))
-    call setline(8,"#MIRROR:           ${V_MIRROR}")
+    call setline(8,"#MIRROR:        ${V_MIRROR}")
     call setline(9,"#Description:   The test script")
     call setline(10,"#Copyright (C): ".strftime("%Y")." All rights reserved")
     call setline(11,"#*********************************************************************************************")
@@ -2626,10 +2627,10 @@ EOF
 
 set_mail(){                                                                                                 
     if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        rpm -q postfix &> /dev/null || { yum -y install postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
-        rpm -q mailx &> /dev/null || yum -y install mailx &> /dev/null
+        rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务,请稍等..."${END};yum -y install postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
+        rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务,请稍等..."${END};yum -y install mailx &> /dev/null; }
     else
-        dpkg -s mailutils &> /dev/null || apt -y install mailutils
+        dpkg -s mailutils &> /dev/null || { ${COLOR}"安装mailutils服务,请稍等..."${END};apt -y install mailutils; }
     fi
     read -p "请输入邮箱地址: " MAIL
     read -p "请输入邮箱授权码: " AUTH
@@ -2987,7 +2988,11 @@ EOF
 
 main(){
     os
-    menu
+    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" -o ${OS_ID} == "Ubuntu" -o ${OS_ID} == "Debian" ];then
+        menu
+    else
+        ${COLOR}"此脚本不支持${OS_ID} ${OS_RELEASE} 系统!"${END}
+    fi
 }
 
 main

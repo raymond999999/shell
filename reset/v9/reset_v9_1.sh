@@ -683,9 +683,9 @@ EOF
 }
 
 set_devel_almalinux_9(){
-    cat > /etc/yum.repos.d/crb.repo <<-EOF
-[crb]
-name=crb
+    cat > /etc/yum.repos.d/devel.repo <<-EOF
+[devel]
+name=devel
 baseurl=https://${MIRROR}/almalinux/\$releasever/devel/\$basearch/os
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9

@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-11-17
+#Date:          2024-11-23
 #FileName:      reset_v9_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
@@ -682,6 +682,65 @@ EOF
     done
 }
 
+set_devel_almalinux_9(){
+    cat > /etc/yum.repos.d/crb.repo <<-EOF
+[crb]
+name=crb
+baseurl=https://${MIRROR}/almalinux/\$releasever/devel/\$basearch/os
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
+}
+
+almalinux_9_devel_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)腾讯镜像源
+3)南京大学镜像源
+4)上海交通大学镜像源
+5)北京大学镜像源
+6)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-6): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_devel_almalinux_9
+            ;;
+        2)
+            tencent
+            set_devel_almalinux_9
+            ;;
+        3)
+            nju
+            set_devel_almalinux_9
+            ;;
+        4)
+            sjtu
+            set_devel_almalinux_9
+            ;;
+        5)
+            pku
+            set_devel_almalinux_9
+            ;;
+        6)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
+            ;;
+        esac
+    done
+}
+
 set_yum_centos_stream_9_perl(){
     ${COLOR}"由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
@@ -1154,12 +1213,13 @@ almalinux_menu(){
 1)base仓库
 2)epel仓库
 3)启用AlmaLinux 9 crb仓库
-4)启用AlmaLinux 8 PowerTools仓库
-5)退出
+4)AlmaLinux 9 devel仓库
+5)启用AlmaLinux 8 PowerTools仓库
+6)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-5): " NUM
+        read -p "请输入镜像源编号(1-6): " NUM
         case ${NUM} in
         1)
             almalinux_8_9_base_menu
@@ -1175,17 +1235,24 @@ EOF
             fi
             ;;
         4)
+            if [ ${OS_RELEASE_VERSION} == "9" ];then
+                almalinux_9_devel_menu
+            else
+                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有devel源，不用设置!"${END}
+            fi
+            ;;
+        5)
             if [ ${OS_RELEASE_VERSION} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
             fi
             ;;
-        5)
+        6)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
             ;;
         esac
     done

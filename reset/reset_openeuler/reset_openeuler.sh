@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-11-17
+#Date:          2024-12-10
 #FileName:      reset_openeuler.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
@@ -180,6 +180,26 @@ pku(){
     MIRROR=mirrors.pku.edu.cn
 }
 
+zju(){
+    MIRROR=mirrors.zju.edu.cn
+}
+
+lzu(){
+    MIRROR=mirror.lzu.edu.cn
+}
+
+cqupt(){
+    MIRROR=mirrors.cqupt.edu.cn
+}
+
+volces(){
+    MIRROR=mirrors.volces.com
+}
+
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_yum(){
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/openEuler.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
@@ -203,14 +223,19 @@ base_menu(){
 4)清华镜像源
 5)网易镜像源
 6)南京大学镜像源
-7)中科大镜像源
+7)中国科学技术大学镜像源
 8)上海交通大学镜像源
 9)北京大学镜像源
-10)退出
+10)浙江大学镜像源
+11)兰州大学镜像源
+12)重庆邮电大学镜像源
+13)火山引擎镜像源
+14)中国科学院软件研究所镜像源
+15)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-10): " NUM
+        read -p "请输入镜像源编号(1-15): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -249,10 +274,30 @@ EOF
             set_yum
             ;;
         10)
+            zju
+            set_yum
+            ;;
+        11)
+            lzu
+            set_yum
+            ;;
+        12)
+            cqupt
+            set_yum
+            ;;
+        13)
+            volces
+            set_yum
+            ;;
+        14)
+            iscas
+            set_yum
+            ;;
+        15)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-15)!"${END}
             ;;
         esac
     done

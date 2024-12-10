@@ -3,13 +3,13 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-11-23
+#Date:          2024-12-10
 #FileName:      reset_v9_2.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
 #               CentOS Stream 8 and 9, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
-#               Debian 12“ operating systems.
+#               Debian 11 and 12“ operating systems.
 #Copyright (C): 2024 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
@@ -593,10 +593,30 @@ archive_fedora(){
     MIRROR=archives.fedoraproject.org
 }
 
+zju(){
+    MIRROR=mirrors.zju.edu.cn
+}
+
+lzu(){
+    MIRROR=mirror.lzu.edu.cn
+}
+
+cqupt(){
+    MIRROR=mirrors.cqupt.edu.cn
+}
+
+volces(){
+    MIRROR=mirrors.volces.com
+}
+
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_yum_rocky_9(){
     [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
-    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "xjtu" ];then
+    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "volces" ];then
         cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -672,15 +692,19 @@ rocky_9_base_menu(){
 3)网易镜像源
 4)搜狐镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)上海交通大学镜像源
 8)西安交通大学镜像源
 9)北京大学镜像源
-10)退出
+10)浙江大学镜像源
+11)兰州大学镜像源
+12)火山引擎镜像源
+13)中国科学院软件研究所镜像源
+14)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-10): " NUM
+        read -p "请输入镜像源编号(1-14): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -719,10 +743,26 @@ EOF
             set_yum_rocky_9
             ;;
         10)
+            zju
+            set_yum_rocky_9
+            ;;
+        11)
+            lzu
+            set_yum_rocky_9
+            ;;
+        12)
+            volces
+            set_yum_rocky_9
+            ;;
+        13)
+            iscas
+            set_yum_rocky_9
+            ;;
+        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
             ;;
         esac
     done
@@ -730,7 +770,7 @@ EOF
 
 set_devel_rocky_9(){
     MIRROR_MIRROR=`echo ${MIRROR} | awk -F"." '{print $2}'`
-    if [ ${MIRROR_MIRROR} == "aliyun" -o ${MIRROR_MIRROR} == "xjtu" ];then
+    if [ ${MIRROR_MIRROR} == "aliyun" -o ${MIRROR_MIRROR} == "volces" ];then
         cat > /etc/yum.repos.d/devel.repo <<-EOF
 [devel]
 name=devel
@@ -770,15 +810,19 @@ rocky_9_devel_menu(){
 3)网易镜像源
 4)搜狐镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)上海交通大学镜像源
 8)西安交通大学镜像源
 9)北京大学镜像源
-10)退出
+10)浙江大学镜像源
+11)兰州大学镜像源
+12)火山引擎镜像源
+13)中国科学院软件研究所镜像源
+14)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-10): " NUM
+        read -p "请输入镜像源编号(1-14): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -817,200 +861,26 @@ EOF
             set_devel_rocky_9
             ;;
         10)
+            zju
+            set_devel_rocky_9
+            ;;
+        11)
+            lzu
+            set_devel_rocky_9
+            ;;
+        12)
+            volces
+            set_devel_rocky_9
+            ;;
+        13)
+            iscas
+            set_devel_rocky_9
+            ;;
+        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
-            ;;
-        esac
-    done
-}
-
-set_yum_almalinux_9(){
-    [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
-    cat > /etc/yum.repos.d/base.repo <<-EOF
-[BaseOS]
-name=BaseOS
-baseurl=https://${MIRROR}/almalinux/\$releasever/BaseOS/\$basearch/os/
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
-
-[AppStream]
-name=AppStream
-baseurl=https://${MIRROR}/almalinux/\$releasever/AppStream/\$basearch/os/
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
-
-[extras]
-name=extras
-baseurl=https://${MIRROR}/almalinux/\$releasever/extras/\$basearch/os/
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
-EOF
-    ${COLOR}"更新镜像源中,请稍等..."${END}
-    dnf clean all &> /dev/null
-    dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
-}
-
-almalinux_9_base_menu(){
-    while true;do
-        echo -e "\E[$[RANDOM%7+31];1m"
-        cat <<-EOF
-1)阿里镜像源
-2)腾讯镜像源
-3)南京大学镜像源
-4)上海交通大学镜像源
-5)北京大学镜像源
-6)退出
-EOF
-        echo -e '\E[0m'
-
-        read -p "请输入镜像源编号(1-6): " NUM
-        case ${NUM} in
-        1)
-            aliyun
-            set_yum_almalinux_9
-            ;;
-        2)
-            tencent
-            set_yum_almalinux_9
-            ;;
-        3)
-            nju
-            set_yum_almalinux_9
-            ;;
-        4)
-            sjtu
-            set_yum_almalinux_9
-            ;;
-        5)
-            pku
-            set_yum_almalinux_9
-            ;;
-        6)
-            break
-            ;;
-        *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
-            ;;
-        esac
-    done
-}
-
-set_crb_almalinux_9(){
-    cat > /etc/yum.repos.d/crb.repo <<-EOF
-[crb]
-name=crb
-baseurl=https://${MIRROR}/almalinux/\$releasever/CRB/\$basearch/os
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
-EOF
-    ${COLOR}"更新镜像源中,请稍等..."${END}
-    dnf clean all &> /dev/null
-    dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
-}
-
-almalinux_9_crb_menu(){
-    while true;do
-        echo -e "\E[$[RANDOM%7+31];1m"
-        cat <<-EOF
-1)阿里镜像源
-2)腾讯镜像源
-3)南京大学镜像源
-4)上海交通大学镜像源
-5)北京大学镜像源
-6)退出
-EOF
-        echo -e '\E[0m'
-
-        read -p "请输入镜像源编号(1-6): " NUM
-        case ${NUM} in
-        1)
-            aliyun
-            set_crb_almalinux_9
-            ;;
-        2)
-            tencent
-            set_crb_almalinux_9
-            ;;
-        3)
-            nju
-            set_crb_almalinux_9
-            ;;
-        4)
-            sjtu
-            set_crb_almalinux_9
-            ;;
-        5)
-            pku
-            set_crb_almalinux_9
-            ;;
-        6)
-            break
-            ;;
-        *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
-            ;;
-        esac
-    done
-}
-
-set_devel_almalinux_9(){
-    cat > /etc/yum.repos.d/devel.repo <<-EOF
-[devel]
-name=devel
-baseurl=https://${MIRROR}/almalinux/\$releasever/devel/\$basearch/os
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
-EOF
-    ${COLOR}"更新镜像源中,请稍等..."${END}
-    dnf clean all &> /dev/null
-    dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
-}
-
-almalinux_9_devel_menu(){
-    while true;do
-        echo -e "\E[$[RANDOM%7+31];1m"
-        cat <<-EOF
-1)阿里镜像源
-2)腾讯镜像源
-3)南京大学镜像源
-4)上海交通大学镜像源
-5)北京大学镜像源
-6)退出
-EOF
-        echo -e '\E[0m'
-
-        read -p "请输入镜像源编号(1-6): " NUM
-        case ${NUM} in
-        1)
-            aliyun
-            set_devel_almalinux_9
-            ;;
-        2)
-            tencent
-            set_devel_almalinux_9
-            ;;
-        3)
-            nju
-            set_devel_almalinux_9
-            ;;
-        4)
-            sjtu
-            set_devel_almalinux_9
-            ;;
-        5)
-            pku
-            set_devel_almalinux_9
-            ;;
-        6)
-            break
-            ;;
-        *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
             ;;
         esac
     done
@@ -1019,7 +889,7 @@ EOF
 set_yum_rocky_8(){
     [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
-    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "xjtu" ];then
+    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "volces" ];then
         cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
 name=BaseOS
@@ -1099,11 +969,15 @@ rocky_8_base_menu(){
 7)上海交通大学镜像源
 8)西安交通大学镜像源
 9)北京大学镜像源
-10)退出
+10)浙江大学镜像源
+11)兰州大学镜像源
+12)火山引擎镜像源
+13)中国科学院软件研究所镜像源
+14)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-10): " NUM
+        read -p "请输入镜像源编号(1-14): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1142,10 +1016,26 @@ EOF
             set_yum_rocky_8
             ;;
         10)
+            zju
+            set_yum_rocky_8
+            ;;
+        11)
+            lzu
+            set_yum_rocky_8
+            ;;
+        12)
+            volces
+            set_yum_rocky_8
+            ;;
+        13)
+            iscas
+            set_yum_rocky_8
+            ;;
+        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
             ;;
         esac
     done
@@ -1153,7 +1043,7 @@ EOF
 
 set_powertools_rocky_8(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
-    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "xjtu" ];then
+    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "volces" ];then
         cat > /etc/yum.repos.d/powertools.repo <<-EOF
 [PowerTools]
 name=PowerTools
@@ -1197,11 +1087,15 @@ rocky_8_powertools_menu(){
 7)上海交通大学镜像源
 8)西安交通大学镜像源
 9)北京大学镜像源
-10)退出
+10)浙江大学镜像源
+11)兰州大学镜像源
+12)火山引擎镜像源
+13)中国科学院软件研究所镜像源
+14)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-10): " NUM
+        read -p "请输入镜像源编号(1-14): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1240,10 +1134,291 @@ EOF
             set_powertools_rocky_8
             ;;
         10)
+            zju
+            set_powertools_rocky_8
+            ;;
+        11)
+            lzu
+            set_powertools_rocky_8
+            ;;
+        12)
+            volces
+            set_powertools_rocky_8
+            ;;
+        13)
+            iscas
+            set_powertools_rocky_8
+            ;;
+        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
+            ;;
+        esac
+    done
+}
+
+set_yum_almalinux_9(){
+    [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
+    cat > /etc/yum.repos.d/base.repo <<-EOF
+[BaseOS]
+name=BaseOS
+baseurl=https://${MIRROR}/almalinux/\$releasever/BaseOS/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+
+[AppStream]
+name=AppStream
+baseurl=https://${MIRROR}/almalinux/\$releasever/AppStream/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+
+[extras]
+name=extras
+baseurl=https://${MIRROR}/almalinux/\$releasever/extras/\$basearch/os/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+}
+
+almalinux_9_base_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)腾讯镜像源
+3)南京大学镜像源
+4)上海交通大学镜像源
+5)北京大学镜像源
+6)浙江大学镜像源
+7)兰州大学镜像源
+8)重庆邮电大学镜像源
+9)火山引擎镜像源
+10)中国科学院软件研究所镜像源
+11)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-11): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_yum_almalinux_9
+            ;;
+        2)
+            tencent
+            set_yum_almalinux_9
+            ;;
+        3)
+            nju
+            set_yum_almalinux_9
+            ;;
+        4)
+            sjtu
+            set_yum_almalinux_9
+            ;;
+        5)
+            pku
+            set_yum_almalinux_9
+            ;;
+        6)
+            zju
+            set_yum_almalinux_9
+            ;;
+        7)
+            lzu
+            set_yum_almalinux_9
+            ;;
+        8)
+            cqupt
+            set_yum_almalinux_9
+            ;;
+        9)
+            volces
+            set_yum_almalinux_9
+            ;;
+        10)
+            iscas
+            set_yum_almalinux_9
+            ;;
+        11)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ;;
+        esac
+    done
+}
+
+set_crb_almalinux_9(){
+    cat > /etc/yum.repos.d/crb.repo <<-EOF
+[crb]
+name=crb
+baseurl=https://${MIRROR}/almalinux/\$releasever/CRB/\$basearch/os
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
+}
+
+almalinux_9_crb_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)腾讯镜像源
+3)南京大学镜像源
+4)上海交通大学镜像源
+5)北京大学镜像源
+6)浙江大学镜像源
+7)兰州大学镜像源
+8)重庆邮电大学镜像源
+9)火山引擎镜像源
+10)中国科学院软件研究所镜像源
+11)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-11): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_crb_almalinux_9
+            ;;
+        2)
+            tencent
+            set_crb_almalinux_9
+            ;;
+        3)
+            nju
+            set_crb_almalinux_9
+            ;;
+        4)
+            sjtu
+            set_crb_almalinux_9
+            ;;
+        5)
+            pku
+            set_crb_almalinux_9
+            ;;
+        6)
+            zju
+            set_crb_almalinux_9
+            ;;
+        7)
+            lzu
+            set_crb_almalinux_9
+            ;;
+        8)
+            cqupt
+            set_crb_almalinux_9
+            ;;
+        9)
+            volces
+            set_crb_almalinux_9
+            ;;
+        10)
+            iscas
+            set_crb_almalinux_9
+            ;;
+        11)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ;;
+        esac
+    done
+}
+
+set_devel_almalinux_9(){
+    cat > /etc/yum.repos.d/devel.repo <<-EOF
+[devel]
+name=devel
+baseurl=https://${MIRROR}/almalinux/\$releasever/devel/\$basearch/os
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+EOF
+    ${COLOR}"更新镜像源中,请稍等..."${END}
+    dnf clean all &> /dev/null
+    dnf makecache &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
+}
+
+almalinux_9_devel_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)腾讯镜像源
+3)南京大学镜像源
+4)上海交通大学镜像源
+5)北京大学镜像源
+6)浙江大学镜像源
+7)兰州大学镜像源
+8)重庆邮电大学镜像源
+9)火山引擎镜像源
+10)中国科学院软件研究所镜像源
+11)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-11): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_devel_almalinux_9
+            ;;
+        2)
+            tencent
+            set_devel_almalinux_9
+            ;;
+        3)
+            nju
+            set_devel_almalinux_9
+            ;;
+        4)
+            sjtu
+            set_devel_almalinux_9
+            ;;
+        5)
+            pku
+            set_devel_almalinux_9
+            ;;
+        6)
+            zju
+            set_devel_almalinux_9
+            ;;
+        7)
+            lzu
+            set_devel_almalinux_9
+            ;;
+        8)
+            cqupt
+            set_devel_almalinux_9
+            ;;
+        9)
+            volces
+            set_devel_almalinux_9
+            ;;
+        10)
+            iscas
+            set_devel_almalinux_9
+            ;;
+        11)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -1285,11 +1460,16 @@ almalinux_8_base_menu(){
 3)南京大学镜像源
 4)上海交通大学镜像源
 5)北京大学镜像源
-6)退出
+6)浙江大学镜像源
+7)兰州大学镜像源
+8)重庆邮电大学镜像源
+9)火山引擎镜像源
+10)中国科学院软件研究所镜像源
+11)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-6): " NUM
+        read -p "请输入镜像源编号(1-11): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1312,10 +1492,30 @@ EOF
             set_yum_almalinux_8
             ;;
         6)
+            zju
+            set_yum_almalinux_8
+            ;;
+        7)
+            lzu
+            set_yum_almalinux_8
+            ;;
+        8)
+            cqupt
+            set_yum_almalinux_8
+            ;;
+        9)
+            volces
+            set_yum_almalinux_8
+            ;;
+        10)
+            iscas
+            set_yum_almalinux_8
+            ;;
+        11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -1344,11 +1544,16 @@ almalinux_8_powertools_menu(){
 3)南京大学镜像源
 4)上海交通大学镜像源
 5)北京大学镜像源
-6)退出
+6)浙江大学镜像源
+7)兰州大学镜像源
+8)重庆邮电大学镜像源
+9)火山引擎镜像源
+10)中国科学院软件研究所镜像源
+11)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-6): " NUM
+        read -p "请输入镜像源编号(1-11): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1371,10 +1576,30 @@ EOF
             set_powertools_almalinux_8
             ;;
         6)
+            zju
+            set_powertools_almalinux_8
+            ;;
+        7)
+            lzu
+            set_powertools_almalinux_8
+            ;;
+        8)
+            cqupt
+            set_powertools_almalinux_8
+            ;;
+        9)
+            volces
+            set_powertools_almalinux_8
+            ;;
+        10)
+            iscas
+            set_powertools_almalinux_8
+            ;;
+        11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -1416,14 +1641,17 @@ centos_stream_9_base_menu(){
 3)腾讯镜像源
 4)清华镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)北京外国语大学镜像源
 8)北京大学镜像源
-9)退出
+9)重庆邮电大学镜像源
+10)火山引擎镜像源
+11)中国科学院软件研究所镜像源
+12)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-9): " NUM
+        read -p "请输入镜像源编号(1-12): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1458,10 +1686,22 @@ EOF
             set_yum_centos_stream_9
             ;;
         9)
+            cqupt
+            set_yum_centos_stream_9
+            ;;
+        10)
+            volces
+            set_yum_centos_stream_9
+            ;;
+        11)
+            iscas
+            set_yum_centos_stream_9
+            ;;
+        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-9)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
             ;;
         esac
     done
@@ -1490,14 +1730,17 @@ centos_stream_9_crb_menu(){
 3)腾讯镜像源
 4)清华镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)北京外国语大学镜像源
 8)北京大学镜像源
-9)退出
+9)重庆邮电大学镜像源
+10)火山引擎镜像源
+11)中国科学院软件研究所镜像源
+12)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-9): " NUM
+        read -p "请输入镜像源编号(1-12): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1532,10 +1775,22 @@ EOF
             set_crb_centos_stream_9
             ;;
         9)
+            cqupt
+            set_crb_centos_stream_9
+            ;;
+        10)
+            volces
+            set_crb_centos_stream_9
+            ;;
+        11)
+            iscas
+            set_crb_centos_stream_9
+            ;;
+        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-9)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
             ;;
         esac
     done
@@ -1577,14 +1832,17 @@ centos_stream_8_base_menu(){
 3)腾讯镜像源
 4)清华镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)北京外国语大学镜像源
 8)北京大学镜像源
-9)退出
+9)重庆邮电大学镜像源
+10)火山引擎镜像源
+11)中国科学院软件研究所镜像源
+12)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-9): " NUM
+        read -p "请输入镜像源编号(1-12): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1619,10 +1877,22 @@ EOF
             set_yum_centos_stream_8
             ;;
         9)
+            cqupt
+            set_yum_centos_stream_8
+            ;;
+        10)
+            volces
+            set_yum_centos_stream_8
+            ;;
+        11)
+            iscas
+            set_yum_centos_stream_8
+            ;;
+        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-9)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
             ;;
         esac
     done
@@ -1651,14 +1921,17 @@ centos_stream_8_powertools_menu(){
 3)腾讯镜像源
 4)清华镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)北京外国语大学镜像源
 8)北京大学镜像源
-9)退出
+9)重庆邮电大学镜像源
+10)火山引擎镜像源
+11)中国科学院软件研究所镜像源
+12)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-9): " NUM
+        read -p "请输入镜像源编号(1-12): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1693,10 +1966,22 @@ EOF
             set_powertools_centos_stream_8
             ;;
         9)
+            cqupt
+            set_powertools_centos_stream_8
+            ;;
+        10)
+            volces
+            set_powertools_centos_stream_8
+            ;;
+        11)
+            iscas
+            set_powertools_centos_stream_8
+            ;;
+        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-9)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
             ;;
         esac
     done
@@ -1745,16 +2030,21 @@ rocky_almalinux_centos_8_9_epel_menu(){
 4)清华镜像源
 5)搜狐镜像源
 6)南京大学镜像源
-7)中科大镜像源
+7)中国科学技术大学镜像源
 8)上海交通大学镜像源
 9)西安交通大学镜像源
-9)北京外国语大学镜像源
+10)北京外国语大学镜像源
 11)北京大学镜像源
-12)退出
+12)浙江大学镜像源
+13)兰州大学镜像源
+14)重庆邮电大学镜像源
+15)火山引擎镜像源
+16)中国科学院软件研究所镜像源
+17)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-17): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1800,12 +2090,31 @@ EOF
             pku
             set_epel_rocky_almalinux_centos_8_9
             ;;
-
         12)
+            zju
+            set_epel_rocky_almalinux_centos_8_9
+            ;;
+        13)
+            lzu
+            set_epel_rocky_almalinux_centos_8_9
+            ;;
+        14)
+            cqupt
+            set_epel_rocky_almalinux_centos_8_9
+            ;;
+        15)
+            volces
+            set_epel_rocky_almalinux_centos_8_9
+            ;;
+        16)
+            iscas
+            set_epel_rocky_almalinux_centos_8_9
+            ;;
+        17)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-17)!"${END}
             ;;
         esac
     done
@@ -1848,14 +2157,17 @@ centos_7_base_menu(){
 3)腾讯镜像源
 4)清华镜像源
 5)南京大学镜像源
-6)中科大镜像源
+6)中国科学技术大学镜像源
 7)北京外国语大学镜像源
 8)北京大学镜像源
-9)退出
+9)重庆邮电大学镜像源
+10)火山引擎镜像源
+11)中国科学院软件研究所镜像源
+12)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-9): " NUM
+        read -p "请输入镜像源编号(1-12): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1890,10 +2202,22 @@ EOF
             set_yum_centos_7
             ;;
         9)
+            cqupt
+            set_yum_centos_7
+            ;;
+        10)
+            volces
+            set_yum_centos_7
+            ;;
+        11)
+            iscas
+            set_yum_centos_7
+            ;;
+        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-9)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
             ;;
         esac
     done
@@ -2170,17 +2494,22 @@ apt_menu(){
 5)网易镜像源
 6)搜狐镜像源
 7)南京大学镜像源
-8)中科大镜像源
+8)中国科学技术大学镜像源
 9)上海交通大学镜像源
 10)西安交通大学镜像源
 11)北京外国语大学镜像源
 12)北京交通大学镜像源
 13)北京大学镜像源
-14)退出
+14)浙江大学镜像源
+15)兰州大学镜像源
+16)重庆邮电大学镜像源
+17)火山引擎镜像源
+18)中国科学院软件研究所镜像源
+19)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-14): " NUM
+        read -p "请输入镜像源编号(1-19): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -2234,12 +2563,31 @@ EOF
             pku
             set_ubuntu_apt
             ;;
-
         14)
+            zju
+            set_ubuntu_apt
+            ;;
+        15)
+            lzu
+            set_ubuntu_apt
+            ;;
+        16)
+            cqupt
+            set_ubuntu_apt
+            ;;
+        17)
+            volces
+            set_ubuntu_apt
+            ;;
+        18)
+            iscas
+            set_ubuntu_apt
+            ;;
+        19)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
             ;;
         esac
     done
@@ -2276,17 +2624,22 @@ debian_menu(){
 5)网易镜像源
 6)搜狐镜像源
 7)南京大学镜像源
-8)中科大镜像源
+8)中国科学技术大学镜像源
 9)上海交通大学镜像源
 10)西安交通大学镜像源
 11)北京外国语大学镜像源
 12)北京交通大学镜像源
 13)北京大学镜像源
-14)退出
+14)浙江大学镜像源
+15)兰州大学镜像源
+16)重庆邮电大学镜像源
+17)火山引擎镜像源
+18)中国科学院软件研究所镜像源
+19)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-14): " NUM
+        read -p "请输入镜像源编号(1-19): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -2341,10 +2694,30 @@ EOF
             set_debian_apt
             ;;
         14)
+            zju
+            set_debian_apt
+            ;;
+        15)
+            lzu
+            set_debian_apt
+            ;;
+        16)
+            cqupt
+            set_debian_apt
+            ;;
+        17)
+            volces
+            set_debian_apt
+            ;;
+        18)
+            iscas
+            set_debian_apt
+            ;;
+        19)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
             ;;
         esac
     done

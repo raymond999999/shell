@@ -31,7 +31,7 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 | ----------------------- | ------------------------------------------------------------ |
 | OpencloudOS版更新的内容 | 1.由于OpencloudOS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
 |                         | 2.添加了对OpencloudOS 8和9系统的支持；                       |
-|                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset_opencloudos”目录下。 |
+|                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
 | Anolis OS版更新的内容   | 1.由于Anolis OS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
 |                         | 2.添加了对Anolis OS 8.9和23系统的支持；                      |
 |                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |

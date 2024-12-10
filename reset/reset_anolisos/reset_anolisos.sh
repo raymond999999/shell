@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-11-17
+#Date:          2024-12-10
 #FileName:      reset_anolisos.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
@@ -120,6 +120,10 @@ nju(){
     MIRROR=mirrors.nju.edu.cn
 }
 
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_yum(){
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/AnolisOS*.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
@@ -139,11 +143,12 @@ base_menu(){
         cat <<-EOF
 1)阿里镜像源
 2)南京大学镜像源
-3)退出
+3)中国科学院软件研究所镜像源
+4)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-3): " NUM
+        read -p "请输入镜像源编号(1-4): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -154,10 +159,14 @@ EOF
             set_yum
             ;;
         3)
+            iscas
+            set_yum
+            ;;
+        4)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-3)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
             ;;
         esac
     done

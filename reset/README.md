@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler和Anolis OS系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS和OpencloudOS系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -13,7 +13,7 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8和9、Ubuntu 18.04/20.04/22.04/24.04、Debian 12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8.9和23。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8和9、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8.9和23；OpencloudOS版支持的系统：OpencloudOS 8和9。 |
 
 **v9_1和v9_2版本的区别：**
 
@@ -27,50 +27,53 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 
 **版本更新日志：**
 
-| 版本                  | 功能                                                         |
-| --------------------- | ------------------------------------------------------------ |
-| Anolis OS版更新的内容 | 1.由于Anolis OS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                       | 2.添加了对Anolis OS 8.9和23系统的支持；                      |
-|                       | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
-| openEuler版更新的内容 | 1.由于openEuler系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                       | 2.添加了对openEuler 22.03和24.03系统的支持；                 |
-|                       | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
-| v9版更新内容          | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
-|                       | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
-|                       | 3.添加了对Debian 12系统的支持；                              |
-|                       | 4.修改了某些bug。                                            |
-|                       | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/v9”目录下。 |
-| v8版更新内容          | 1.添加了对AlmaLinux 8和9系统的支持；                         |
-|                       | 2.添加Ubuntu卸载snap的功能；                                 |
-|                       | 3.修改了某些bug。                                            |
-| v7版更新内容          | 1.由于v6版修改的比较仓促，其中设置镜像仓库有bug，修复了其中的bug，而且设置镜像仓库可以重复修改；修复了设置ip不能成功的bug；优化了设置系统别名的bug；修复了“优化内核参数”的bug； |
-|                       | 2.分别有reset_v7_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v7_2版本（镜像仓库和修改ip地址采用配置文件方式）。 |
-| v6版更新内容          | 1.由于CentOS 6和8官方已经停止支持，也就移除了其相关内容；    |
-|                       | 2.分别有reset_v6_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v6_2版本（镜像仓库和修改ip地址采用配置文件方式）； |
-|                       | 3.reset_v6_1添加了CentOS Stream 9用Perl语言更改镜像源的方法，优化了某些镜像仓库失效的bug，修改了某些bug。 |
-| v5版更新内容          | 1.优化了某些镜像仓库失效的bug；                              |
-|                       | 2.CentOS stream 9和Rocky 9修改ip的方式更改，做了相应的修改； |
-|                       | 3.分别有reset_v5_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v5_2版本（镜像仓库和修改ip地址采用配置文件方式）； |
-|                       | 4.把设置PS1、设置默认文本编辑器为vim和设置history格式单独分开； |
-|                       | 5.修改了某些bug。                                            |
-| v4版更新内容          | 1.添加对CentOS stream 9、Rocky 9和Ubuntu 22.04系统的支持；   |
-|                       | 2.添加Ubuntu 22.04修改IP地址和网关地址、双网卡更改IP地址；   |
-|                       | 3.添加禁用ctrl+alt+del重启功能；                             |
-|                       | 4.修改了某些bug。                                            |
-| v3版更新内容          | 1.添加双网卡更改IP地址；                                     |
-|                       | 2.添加设置系统时区。                                         |
-| v2版更新内容          | 1.添加对CentOS stream 8系统支持，添加了CentOS stream 8镜像仓库； |
-|                       | 2.由于CentOS 8已被废弃，修改成centos-vault的历史镜像仓库；   |
-|                       | 3.优化Ubuntu 20.04禁用swap不生效的问题。                     |
-| v1版支持功能          | 1.支持CentOS 6/7/8、Ubuntu 18.04/20.04、Rocky 8系统；        |
-|                       | 2.支持功能禁用SELinux、关闭防火墙、优化SSH、设置系统别名、设置vimrc配置文件、设置软件包仓库、Minimal安装建议安装软件、安装邮件服务并配置邮件、更改SSH端口号、修改网卡名、修改IP地址和网关地址、设置主机名、设置PS1和系统环境变量、禁用SWAP、优化内核参数、优化资源限制参数、Ubuntu设置root用户登录、Ubuntu卸载无用软件包。 |
+| 版本                    | 功能                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| OpencloudOS版更新的内容 | 1.由于OpencloudOS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
+|                         | 2.添加了对OpencloudOS 8和9系统的支持；                       |
+|                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset_opencloudos”目录下。 |
+| Anolis OS版更新的内容   | 1.由于Anolis OS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
+|                         | 2.添加了对Anolis OS 8.9和23系统的支持；                      |
+|                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
+| openEuler版更新的内容   | 1.由于openEuler系统跟别的系统版本有差异，所以这个写了一个单独版本； |
+|                         | 2.添加了对openEuler 22.03和24.03系统的支持；                 |
+|                         | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
+| v9版更新内容            | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
+|                         | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
+|                         | 3.添加了对Debian 11和12系统的支持；                          |
+|                         | 4.修改了某些bug。                                            |
+|                         | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/v9”目录下。 |
+| v8版更新内容            | 1.添加了对AlmaLinux 8和9系统的支持；                         |
+|                         | 2.添加Ubuntu卸载snap的功能；                                 |
+|                         | 3.修改了某些bug。                                            |
+| v7版更新内容            | 1.由于v6版修改的比较仓促，其中设置镜像仓库有bug，修复了其中的bug，而且设置镜像仓库可以重复修改；修复了设置ip不能成功的bug；优化了设置系统别名的bug；修复了“优化内核参数”的bug； |
+|                         | 2.分别有reset_v7_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v7_2版本（镜像仓库和修改ip地址采用配置文件方式）。 |
+| v6版更新内容            | 1.由于CentOS 6和8官方已经停止支持，也就移除了其相关内容；    |
+|                         | 2.分别有reset_v6_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v6_2版本（镜像仓库和修改ip地址采用配置文件方式）； |
+|                         | 3.reset_v6_1添加了CentOS Stream 9用Perl语言更改镜像源的方法，优化了某些镜像仓库失效的bug，修改了某些bug。 |
+| v5版更新内容            | 1.优化了某些镜像仓库失效的bug；                              |
+|                         | 2.CentOS stream 9和Rocky 9修改ip的方式更改，做了相应的修改； |
+|                         | 3.分别有reset_v5_1版本（镜像仓库采用sed直接替换网址方式；修改ip地址采用nmcli命令方式）和reset_v5_2版本（镜像仓库和修改ip地址采用配置文件方式）； |
+|                         | 4.把设置PS1、设置默认文本编辑器为vim和设置history格式单独分开； |
+|                         | 5.修改了某些bug。                                            |
+| v4版更新内容            | 1.添加对CentOS stream 9、Rocky 9和Ubuntu 22.04系统的支持；   |
+|                         | 2.添加Ubuntu 22.04修改IP地址和网关地址、双网卡更改IP地址；   |
+|                         | 3.添加禁用ctrl+alt+del重启功能；                             |
+|                         | 4.修改了某些bug。                                            |
+| v3版更新内容            | 1.添加双网卡更改IP地址；                                     |
+|                         | 2.添加设置系统时区。                                         |
+| v2版更新内容            | 1.添加对CentOS stream 8系统支持，添加了CentOS stream 8镜像仓库； |
+|                         | 2.由于CentOS 8已被废弃，修改成centos-vault的历史镜像仓库；   |
+|                         | 3.优化Ubuntu 20.04禁用swap不生效的问题。                     |
+| v1版支持功能            | 1.支持CentOS 6/7/8、Ubuntu 18.04/20.04、Rocky 8系统；        |
+|                         | 2.支持功能禁用SELinux、关闭防火墙、优化SSH、设置系统别名、设置vimrc配置文件、设置软件包仓库、Minimal安装建议安装软件、安装邮件服务并配置邮件、更改SSH端口号、修改网卡名、修改IP地址和网关地址、设置主机名、设置PS1和系统环境变量、禁用SWAP、优化内核参数、优化资源限制参数、Ubuntu设置root用户登录、Ubuntu卸载无用软件包。 |
 
 **reset脚本在使用过程中需要注意的事项：**
 
 1. 首先说明，脚本必须在root用户下使用。
 
    ```bash
-   # Rocky、Almalinux、和CentOS默认可以使用root用户登录不用设置，Ubuntu和Debian必须先设置root用户登录。
+   # Rocky、Almalinux、CentOS、openEuler、Anolis OS和OpencloudOS默认可以使用root用户登录不用设置，Ubuntu和Debian必须先设置root用户登录。
    # 先安装lrzsz工具，把脚本传上去
    raymond@ubuntu2404:~$ sudo apt -y install lrzsz
    raymond@ubuntu2404:~$ rz -E

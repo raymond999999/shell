@@ -4,10 +4,10 @@
 #Author:        Raymond
 #QQ:            88563128
 #Date:          2025-01-11
-#FileName:      reset_anolisos.sh
+#FileName:      reset_opensuse.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
-#               “Anolis OS 8 and 23“ operating systems.
+#               “openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
@@ -15,8 +15,8 @@ END='\033[0m'
 
 os(){
     OS_ID=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
+    OS_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+) (.*)"$@\2@p' /etc/os-release`
     OS_RELEASE=`sed -rn '/^VERSION_ID=/s@.*="?([0-9.]+)"?@\1@p' /etc/os-release`
-    OS_RELEASE_VERSION=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
 }
 
 check_ip(){
@@ -38,7 +38,6 @@ check_ip(){
 
 set_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -60,17 +59,24 @@ set_network(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
-    nmcli connection delete ${ETHNAME} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-    nmcli con reload && nmcli dev up ${ETHNAME} >& /dev/null
+    cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
+STARTMODE='auto'
+BOOTPROTO='static'
+ZONE=public
+IPADDR='${IP}'
+PREFIXLEN='${PREFIX}'
+EOF
+    touch /etc/sysconfig/network/routes
+    cat > /etc/sysconfig/network/routes  <<-EOF
+default ${GATEWAY} - -
+EOF
+    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"${PRIMARY_DNS} ${BACKUP_DNS}"/g' /etc/sysconfig/network/config
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请重新启动系统后生效!"${END}
 }
 
 set_dual_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    CONNECTION_NAME1=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
-    CONNECTION_NAME2=`nmcli dev | awk 'NR==3{print $4,$5,$6}'`
     while true; do
         read -p "请输入第一块网卡IP地址: " IP
         check_ip ${IP}
@@ -98,12 +104,26 @@ set_dual_network(){
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
-    nmcli connection delete ${ETHNAME} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-    nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2} && nmcli connection delete ${ETHNAME2} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME2} ifname ${ETHNAME2} ipv4.method manual ipv4.address "${IP2}/${PREFIX2}" autoconnect yes >& /dev/null && \
-    nmcli con reload && nmcli dev up ${ETHNAME} ${ETHNAME2} >& /dev/null
+    cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
+STARTMODE='auto'
+BOOTPROTO='static'
+ZONE=public
+IPADDR='${IP}'
+PREFIXLEN='${PREFIX}'
+EOF
+    touch /etc/sysconfig/network/routes
+    cat > /etc/sysconfig/network/routes  <<-EOF
+default ${GATEWAY} - -
+EOF
+    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"${PRIMARY_DNS} ${BACKUP_DNS}"/g' /etc/sysconfig/network/config
+    cat > /etc/sysconfig/network/ifcfg-${ETHNAME2} <<-EOF
+STARTMODE='auto'
+BOOTPROTO='static'
+ZONE=public
+IPADDR='${IP2}'
+PREFIXLEN='${PREFIX2}'
+EOF
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请重新启动系统后生效!"${END}
 }
 
 set_hostname(){
@@ -116,21 +136,73 @@ aliyun(){
     MIRROR=mirrors.aliyun.com
 }
 
+huawei(){
+    MIRROR=repo.huaweicloud.com
+}
+
+tencent(){
+    MIRROR=mirrors.tencent.com
+}
+
+tuna(){
+    MIRROR=mirrors.tuna.tsinghua.edu.cn
+}
+
+netease(){
+    MIRROR=mirrors.163.com
+}
+
+sohu(){
+    MIRROR=mirrors.sohu.com
+}
+
 nju(){
     MIRROR=mirrors.nju.edu.cn
 }
 
-set_yum(){
-    OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/AnolisOS*.repo | head -1)
-    OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
-    if [ ${OLD_MIRROR_URL} == "openanolis" ];then
-        sed -i.bak -e 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'|g' /etc/yum.repos.d/AnolisOS*.repo
-    else
-        sed -i -e 's|'${OLD_MIRROR}'|'${MIRROR}'|g' /etc/yum.repos.d/AnolisOS*.repo
-    fi
+ustc(){
+    MIRROR=mirrors.ustc.edu.cn
+}
+
+sjtu(){
+    MIRROR=mirrors.sjtug.sjtu.edu.cn
+}
+
+bfsu(){
+    MIRROR=mirrors.bfsu.edu.cn
+}
+
+pku(){
+    MIRROR=mirrors.pku.edu.cn
+}
+
+zju(){
+    MIRROR=mirrors.zju.edu.cn
+}
+
+lzu(){
+    MIRROR=mirror.lzu.edu.cn
+}
+
+cqupt(){
+    MIRROR=mirrors.cqupt.edu.cn
+}
+
+volces(){
+    MIRROR=mirrors.volces.com
+}
+
+set_zypper(){
+    [ -d /etc/zypp/repos.d/backup ] || { mkdir /etc/zypp/repos.d/backup; mv /etc/zypp/repos.d/*.repo /etc/zypp/repos.d/backup; }
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/distribution/leap/$releasever/repo/oss/' mirror-oss
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/distribution/leap/$releasever/repo/non-oss/' mirror-non-oss
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/oss/' mirror-update
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/non-oss/' mirror-update-non-oss
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/sle/' mirror-sle-update
+    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/backports/' mirror-backports-update
     ${COLOR}"更新镜像源中,请稍等..."${END}
-    dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    zypper refresh
+    ${COLOR}"${OS_ID} ${OS_RELEASE} zypper源设置完成!"${END}
 }
 
 base_menu(){
@@ -138,49 +210,108 @@ base_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)南京大学镜像源
-3)退出
+2)华为镜像源
+3)腾讯镜像源
+4)清华镜像源
+5)网易镜像源
+6)搜狐镜像源
+7)南京大学镜像源
+8)中国科学技术大学镜像源
+9)上海交通大学镜像源
+10)北京外国语大学镜像源
+11)北京大学镜像源
+12)浙江大学镜像源
+13)兰州大学镜像源
+14)重庆邮电大学镜像源
+15)火山引擎镜像源
+16)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-3): " NUM
+        read -p "请输入镜像源编号(1-16): " NUM
         case ${NUM} in
         1)
             aliyun
-            set_yum
+            set_zypper
             ;;
         2)
-            nju
-            set_yum
+            huawei
+            set_zypper
             ;;
         3)
+            tencent
+            set_zypper
+            ;;
+        4)
+            tuna
+            set_zypper
+            ;;
+        5)
+            netease
+            set_zypper
+            ;;
+        6)
+            sohu
+            set_zypper
+            ;;
+        7)
+            nju
+            set_zypper
+            ;;
+        8)
+            ustc
+            set_zypper
+            ;;
+        9)
+            sjtu
+            set_zypper
+            ;;
+        10)
+            bfsu
+            set_zypper
+            ;;
+        11)
+            pku
+            set_zypper
+            ;;
+        12)
+            zju
+            set_zypper
+            ;;
+        13)
+            lzu
+            set_zypper
+            ;;
+        14)
+            cqupt
+            set_zypper
+            ;;
+        15)
+            volces
+            set_zypper
+            ;;
+        16)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-3)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-16)!"${END}
             ;;
         esac
     done
 }
 
 minimal_install(){
-    ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
-    yum -y install gcc make autoconf gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
+    ${COLOR}'开始安装“建议安装软件包”,请稍等......'${END}
+    zypper install -y gcc make autoconf gcc-c++ glibc-devel pcre pcre-devel openssl-devel systemd-devel zlib-devel lrzsz tree tmux tcpdump iotop bc unzip nfs-utils &> /dev/null
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 建议安装软件包已安装完成!"${END}
 }
 
 disable_firewalls(){
     rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} Firewall防火墙已关闭!"${END}; } || ${COLOR}"${OS_ID} ${OS_RELEASE} iptables防火墙已关闭!"${END}
 }
 
-disable_selinux(){
-    if [ `getenforce` == "Enforcing" ];then
-        sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
-        setenforce 0
-        ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已禁用,请重新启动系统后才能永久生效!"${END}
-    else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已被禁用,不用设置!"${END}
-    fi
+disable_apparmor(){
+    systemctl disable --now apparmor &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} AppArmor已禁用!"${END}
 }
 
 set_swap(){
@@ -315,11 +446,11 @@ optimization_ssh(){
 }
 
 set_ssh_port(){
-    disable_selinux
+    disable_apparmor
     disable_firewalls
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
-	systemctl restart sshd
+    systemctl restart sshd
     ${COLOR}"${OS_ID} ${OS_RELEASE} 更改SSH端口号已完成,请重新登陆后生效!"${END}
 }
 
@@ -328,35 +459,18 @@ set_base_alias(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
     if [ ${IP_NUM} == "2" ];then
-        if [ ${OS_RELEASE_VERSION} == "8" ];then
-            cat >>~/.bashrc <<-EOF
-alias cdnet="cd /etc/sysconfig/network-scripts"
-alias cdrepo="cd /etc/yum.repos.d"
-alias vie0="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME}"
+        cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/sysconfig/network"
+alias cdrepo="cd /etc/zypp/repos.d"
+alias vie0="vim /etc/sysconfig/network/ifcfg-${ETHNAME}"
 EOF
-        else
-            cat >>~/.bashrc <<-EOF
-alias cdnet="cd /etc/NetworkManager/system-connections"
-alias cdrepo="cd /etc/yum.repos.d"
-alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
-EOF
-        fi
     else	
-        if [ -o ${OS_RELEASE_VERSION} == "8" ];then
-            cat >>~/.bashrc <<-EOF
-alias cdnet="cd /etc/sysconfig/network-scripts"
-alias cdrepo="cd /etc/yum.repos.d"
-alias vie0="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME}"
-alias vie1="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2}"
+        cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/sysconfig/network"
+alias cdrepo="cd /etc/zypp/repos.d"
+alias vie0="vim /etc/sysconfig/network/ifcfg-${ETHNAME}"
+alias vie1="vim /etc/sysconfig/network/ifcfg-${ETHNAME2}"
 EOF
-        else
-            cat >>~/.bashrc <<-EOF
-alias cdnet="cd /etc/NetworkManager/system-connections"
-alias cdrepo="cd /etc/yum.repos.d"
-alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
-alias vie1="vim /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection"
-EOF
-        fi
     fi
     DISK_NAME=`lsblk|awk -F" " '/disk/{printf $1}' | cut -c1-4`
     if [ ${DISK_NAME} == "sda" ];then
@@ -409,8 +523,8 @@ EOF
 }
 
 set_mail(){                                                                                                 
-    rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务,请稍等..."${END};yum -y install postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
-    rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务,请稍等..."${END};yum -y install mailx &> /dev/null; }
+    rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务,请稍等..."${END};zypper install -y postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
+    rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务,请稍等..."${END};zypper install -y mailx &> /dev/null; }
     read -p "请输入邮箱地址: " MAIL
     read -p "请输入邮箱授权码: " AUTH
     SMTP=`echo ${MAIL} |awk -F"@" '{print $2}'`
@@ -454,12 +568,12 @@ random_color(){
 }
 
 set_base_ps1(){
-    C_PS1=$(echo "PS1='\[\e[1;${P_COLOR}m\][\u@\h \W]\\$ \[\e[0m\]'" >> ~/.bashrc)
+    C_PS1=$(echo "export PS1='\[\e[1;${P_COLOR}m\]\[\]\u@\h:\w #\[\] \[\e[0m\]'" >> ~/.bashrc)
 }
 
 set_ps1_env(){
-    if grep -Eqi "^PS1" ~/.bashrc;then
-        sed -i '/^PS1/d' ~/.bashrc
+    if grep -Eqi "^.*PS1" ~/.bashrc;then
+        sed -i '/^.*PS1/d' ~/.bashrc
         set_base_ps1
     else
         set_base_ps1
@@ -558,7 +672,6 @@ set_history_env(){
 }
 
 disable_restart(){
-    systemctl disable ctrl-alt-del.target
     systemctl mask ctrl-alt-del.target
     ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
 }
@@ -606,7 +719,7 @@ EOF
             disable_firewalls
             ;;
         7)
-            disable_selinux
+            disable_apparmor
             ;;
         8)
             set_swap
@@ -665,7 +778,7 @@ EOF
 
 main(){
     os
-    if [ ${OS_ID} == "Anolis" ];then
+    if [ ${OS_ID} == "openSUSE" ];then
         menu
     else
         ${COLOR}"此脚本不支持${OS_ID} ${OS_RELEASE} 系统!"${END}

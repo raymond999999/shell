@@ -3,12 +3,12 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-12-10
+#Date:          2025-01-11
 #FileName:      reset_opencloudos.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
 #               “OpencloudOS 8 and 9“ operating systems.
-#Copyright (C): 2024 All rights reserved
+#Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -157,10 +157,6 @@ sjtu(){
     MIRROR=mirrors.sjtug.sjtu.edu.cn
 }
 
-iscas(){
-    MIRROR=mirror.iscas.ac.cn
-}
-
 set_yum(){
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/OpenCloudOS*.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
@@ -181,12 +177,11 @@ base_menu(){
 1)腾讯镜像源
 2)南京大学镜像源
 3)上海交通大学镜像源
-4)中国科学院软件研究所镜像源
-5)退出
+4)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-5): " NUM
+        read -p "请输入镜像源编号(1-4): " NUM
         case ${NUM} in
         1)
             tencent
@@ -201,14 +196,10 @@ EOF
             set_yum
             ;;
         4)
-            iscas
-            set_yum
-            ;;
-        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
             ;;
         esac
     done
@@ -235,7 +226,7 @@ disable_selinux(){
 }
 
 set_swap(){
-    sed -ri 's/.*swap.*/#&/' /etc/fstab
+    sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
     swapoff -a
     ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
 }
@@ -592,34 +583,32 @@ set_history_env(){
 }
 
 disable_restart(){
-    if [ -f /usr/lib/systemd/system/ctrl-alt-del.target ];then
-        cp /usr/lib/systemd/system/ctrl-alt-del.target{,.bak}
-        rm -f /usr/lib/systemd/system/ctrl-alt-del.target
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启处理成功!"${END}
-    else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del已处理!"${END}
+    if [ ${OS_RELEASE_VERSION} == "8" ];then
+        systemctl disable ctrl-alt-del.target
     fi
+    systemctl mask ctrl-alt-del.target
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
 }
 
 menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-*********************************************************
-*                  系统初始化脚本菜单                   *
-* 1.修改网卡名               13.优化SSH                 *
-* 2.设置网络(单网卡)         14.更改SSH端口号           *
-* 3.设置网络(双网卡)         15.设置系统别名            *
-* 4.设置主机名               16.设置vimrc配置文件       *
-* 5.设置镜像仓库             17.安装邮件服务并配置邮件  *
-* 6.Minimal安装建议安装软件  18.设置PS1(请进入选择颜色) *
-* 7.关闭防火墙               19.设置默认文本编辑器为vim *
-* 8.禁用SELinux              20.设置history格式         *
-* 9.禁用SWAP                 21.禁用ctrl+alt+del重启    *
-* 10.设置系统时区            22.重启系统                *
-* 11.优化资源限制参数        23.关机                    *
-* 12.优化内核参数            24.退出                    *
-*********************************************************
+***************************************************************
+*                   系统初始化脚本菜单                        *
+* 1.修改网卡名                13.优化SSH                      *
+* 2.设置网络(单网卡)          14.更改SSH端口号                *
+* 3.设置网络(双网卡)          15.设置系统别名                 *
+* 4.设置主机名                16.设置vimrc配置文件            *
+* 5.设置镜像仓库              17.安装邮件服务并配置邮件       *
+* 6.Minimal安装建议安装软件   18.设置PS1(请进入选择颜色)      *
+* 7.关闭防火墙                19.设置默认文本编辑器为vim      *
+* 8.禁用SELinux               20.设置history格式              *
+* 9.禁用SWAP                  21.禁用ctrl+alt+del重启系统功能 *
+* 10.设置系统时区             22.重启系统                     *
+* 11.优化资源限制参数         23.关机                         *
+* 12.优化内核参数             24.退出                         *
+***************************************************************
 EOF
         echo -e '\E[0m'
 

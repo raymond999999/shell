@@ -3,14 +3,14 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2024-12-10
+#Date:          2025-01-11
 #FileName:      reset_v9_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
 #               CentOS Stream 8 and 9, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
 #               Debian 11 and 12“ operating systems.
-#Copyright (C): 2024 All rights reserved
+#Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -526,10 +526,6 @@ volces(){
     MIRROR=mirrors.volces.com
 }
 
-iscas(){
-    MIRROR=mirror.iscas.ac.cn
-}
-
 set_yum_rocky_8_9(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
@@ -586,12 +582,11 @@ rocky_8_9_base_menu(){
 10)浙江大学镜像源
 11)兰州大学镜像源
 12)火山引擎镜像源
-13)中国科学院软件研究所镜像源
-14)退出
+13)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-14): " NUM
+        read -p "请输入镜像源编号(1-13): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -642,14 +637,10 @@ EOF
             set_yum_rocky_8_9
             ;;
         13)
-            iscas
-            set_yum_rocky_8_9
-            ;;
-        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-13)!"${END}
             ;;
         esac
     done
@@ -690,12 +681,11 @@ almalinux_8_9_base_menu(){
 7)兰州大学镜像源
 8)重庆邮电大学镜像源
 9)火山引擎镜像源
-10)中国科学院软件研究所镜像源
-11)退出
+10)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-11): " NUM
+        read -p "请输入镜像源编号(1-10): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -734,14 +724,10 @@ EOF
             set_yum_almalinux_8_9
             ;;
         10)
-            iscas
-            set_yum_almalinux_8_9
-            ;;
-        11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
             ;;
         esac
     done
@@ -774,12 +760,11 @@ almalinux_9_devel_menu(){
 7)兰州大学镜像源
 8)重庆邮电大学镜像源
 9)火山引擎镜像源
-10)中国科学院软件研究所镜像源
-11)退出
+10)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-11): " NUM
+        read -p "请输入镜像源编号(1-10): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -818,14 +803,10 @@ EOF
             set_devel_almalinux_9
             ;;
         10)
-            iscas
-            set_devel_almalinux_9
-            ;;
-        11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-10)!"${END}
             ;;
         esac
     done
@@ -870,12 +851,11 @@ centos_stream9_base_menu(){
 8)北京大学镜像源
 9)重庆邮电大学镜像源
 10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+11)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-11): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -918,14 +898,10 @@ EOF
             set_yum_centos_stream_9
             ;;
         11)
-            iscas
-            set_yum_centos_stream_9
-            ;;
-        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -965,12 +941,11 @@ centos_stream_8_base_menu(){
 8)北京大学镜像源
 9)重庆邮电大学镜像源
 10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+11)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-11): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1013,14 +988,10 @@ EOF
             set_yum_centos_stream_8
             ;;
         11)
-            iscas
-            set_yum_centos_stream_8
-            ;;
-        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -1091,12 +1062,11 @@ rocky_almalinux_centos_8_9_epel_menu(){
 13)兰州大学镜像源
 14)重庆邮电大学镜像源
 15)火山引擎镜像源
-16)中国科学院软件研究所镜像源
-17)退出
+16)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-17): " NUM
+        read -p "请输入镜像源编号(1-16): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1159,14 +1129,10 @@ EOF
             set_epel_rocky_almalinux_centos_8_9
             ;;
         16)
-            iscas
-            set_epel_rocky_almalinux_centos_8_9
-            ;;
-        17)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-17)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-16)!"${END}
             ;;
         esac
     done
@@ -1199,12 +1165,11 @@ centos7_base_menu(){
 8)北京大学镜像源
 9)重庆邮电大学镜像源
 10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+11)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-11): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1247,14 +1212,10 @@ EOF
             set_yum_centos_7
             ;;
         11)
-            iscas
-            set_yum_centos_7
-            ;;
-        12)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
             ;;
         esac
     done
@@ -1515,12 +1476,11 @@ apt_menu(){
 15)兰州大学镜像源
 16)重庆邮电大学镜像源
 17)火山引擎镜像源
-18)中国科学院软件研究所镜像源
-19)退出
+18)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-19): " NUM
+        read -p "请输入镜像源编号(1-18): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1591,14 +1551,10 @@ EOF
             set_ubuntu_apt
             ;;
         18)
-            iscas
-            set_ubuntu_apt
-            ;;
-        19)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-18)!"${END}
             ;;
         esac
     done
@@ -1634,12 +1590,11 @@ debian_menu(){
 15)兰州大学镜像源
 16)重庆邮电大学镜像源
 17)火山引擎镜像源
-18)中国科学院软件研究所镜像源
-19)退出
+18)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-19): " NUM
+        read -p "请输入镜像源编号(1-18): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1710,14 +1665,10 @@ EOF
             set_debian_apt
             ;;
         18)
-            iscas
-            set_debian_apt
-            ;;
-        19)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-18)!"${END}
             ;;
         esac
     done
@@ -2232,13 +2183,11 @@ set_history_env(){
 }
 
 disable_restart(){
-    if [ -f /usr/lib/systemd/system/ctrl-alt-del.target ];then
-        cp /usr/lib/systemd/system/ctrl-alt-del.target{,.bak}
-        rm -f /usr/lib/systemd/system/ctrl-alt-del.target
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启处理成功!"${END}
-    else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del已处理!"${END}
+    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+        systemctl disable ctrl-alt-del.target
     fi
+    systemctl mask ctrl-alt-del.target
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
 }
 
 set_ubuntu_debian_root_login(){
@@ -2316,23 +2265,23 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-******************************************************************
-*                     系统初始化脚本菜单                         *
-* 1.修改网卡名                 15.设置系统别名                   *
-* 2.设置网络(单网卡)           16.设置vimrc配置文件              *
-* 3.设置网络(双网卡)           17.安装邮件服务并配置邮件         *
-* 4.设置主机名                 18.设置PS1(请进入选择颜色)        *
-* 5.设置镜像仓库               19.设置默认文本编辑器为vim        *
-* 6.Minimal安装建议安装软件    20.设置history格式                *
-* 7.关闭防火墙                 21.禁用ctrl+alt+del重启           *
-* 8.禁用SELinux                22.Ubuntu和Debian设置root用户登录 *
-* 9.禁用SWAP                   23.Ubuntu卸载无用软件包           *
-* 10.设置系统时区              24.Ubuntu卸载snap                 *
-* 11.优化资源限制参数          25.重启系统                       *
-* 12.优化内核参数              26.关机                           *
-* 13.优化SSH                   27.退出                           *
-* 14.更改SSH端口号                                               *
-******************************************************************
+*****************************************************************
+*                   系统初始化脚本菜单                          *
+* 1.修改网卡名                15.设置系统别名                   *
+* 2.设置网络(单网卡)          16.设置vimrc配置文件              *
+* 3.设置网络(双网卡)          17.安装邮件服务并配置邮件         *
+* 4.设置主机名                18.设置PS1(请进入选择颜色)        *
+* 5.设置镜像仓库              19.设置默认文本编辑器为vim        *
+* 6.Minimal安装建议安装软件   20.设置history格式                *
+* 7.关闭防火墙                21.禁用ctrl+alt+del重启系统功能   *
+* 8.禁用SELinux               22.Ubuntu和Debian设置root用户登录 *
+* 9.禁用SWAP                  23.Ubuntu卸载无用软件包           *
+* 10.设置系统时区             24.Ubuntu卸载snap                 *
+* 11.优化资源限制参数         25.重启系统                       *
+* 12.优化内核参数             26.关机                           *
+* 13.优化SSH                  27.退出                           *
+* 14.更改SSH端口号                                              *
+*****************************************************************
 EOF
         echo -e '\E[0m'
 

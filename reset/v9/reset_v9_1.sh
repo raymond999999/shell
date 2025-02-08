@@ -2227,7 +2227,11 @@ EOF
 
 ubuntu_remove(){
     if [ ${OS_ID} == "Ubuntu" ];then
-        apt -y purge ufw lxd lxd-client lxcfs liblxc-common
+        if [ ${OS_RELEASE_VERSION} == 18 ];then
+            apt -y purge ufw lxd lxd-client lxcfs liblxc-common
+        else
+            apt -y purge ufw
+        fi
         ${COLOR}"${OS_ID} ${OS_RELEASE} 无用软件包卸载完成!"${END}
     else
         ${COLOR}"${OS_ID} ${OS_RELEASE} 系统不可用!"${END}

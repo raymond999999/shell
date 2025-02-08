@@ -583,7 +583,8 @@ set_history_env(){
 }
 
 disable_restart(){
-    if [ ${OS_RELEASE_VERSION} == "8" ];then
+    START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
+    if [ ${START_STATUS} == "enabled" ];then
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target

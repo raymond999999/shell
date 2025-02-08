@@ -3,12 +3,12 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-01-11
+#Date:          2025-02-07
 #FileName:      reset_v9_1.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
-#               CentOS Stream 8 and 9, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
+#               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
 #               Debian 11 and 12“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
@@ -812,8 +812,8 @@ EOF
     done
 }
 
-set_yum_centos_stream_9_perl(){
-    ${COLOR}"由于CentOS Stream 9系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 9镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
+set_yum_centos_stream_9_10_perl(){
+    ${COLOR}"由于${OS_ID} Stream ${OS_RELEASE}系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的${OS_ID} Stream ${OS_RELEASE}镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
     PERL_FILE=update_mirror.pl
     if [ ! -e ${PERL_FILE} ];then
@@ -829,7 +829,7 @@ set_yum_centos_stream_9_perl(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-set_yum_centos_stream_9(){
+set_yum_centos_stream_9_10(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever-stream/.*/$@\1@p' /etc/yum.repos.d/centos*.repo | head -1)
     sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/centos*.repo
     ${COLOR}"更新镜像源中,请稍等..."${END}
@@ -837,7 +837,7 @@ set_yum_centos_stream_9(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-centos_stream9_base_menu(){
+centos_stream_9_10_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -859,43 +859,43 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         2)
             huawei
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         3)
             tencent
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         4)
             tuna
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         5)
             nju
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         6)
             ustc
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         7)
             bfsu
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         8)
             pku
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         9)
             cqupt
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         10)
             volces
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         11)
             break
@@ -997,7 +997,7 @@ EOF
     done
 }
 
-set_epel_rocky_almalinux_centos_8_9(){
+set_epel_rocky_almalinux_centos_8_9_10(){
     rpm -q epel-release &> /dev/null || { ${COLOR}"安装epel-release工具,请稍等..."${END};yum -y install epel-release &> /dev/null; }
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/epel*.repo | head -1)
@@ -1043,7 +1043,7 @@ set_epel_rocky_almalinux_centos_8_9(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
 }
 
-rocky_almalinux_centos_8_9_epel_menu(){
+rocky_almalinux_centos_8_9_10_epel_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1070,63 +1070,63 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         2)
             huawei
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         3)
             tencent
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         4)
             tuna
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         5)
             sohu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         6)
             nju
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         7)
             ustc
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         8)
             sjtu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         9)
             xjtu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         10)
             bfsu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         11)
             pku
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         12)
             zju
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         13)
             lzu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         14)
             cqupt
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         15)
             volces
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         16)
             break
@@ -1301,7 +1301,7 @@ EOF
             rocky_8_9_base_menu
             ;;
         2)
-            rocky_almalinux_centos_8_9_epel_menu
+            rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
@@ -1346,7 +1346,7 @@ EOF
             almalinux_8_9_base_menu
             ;;
         2)
-            rocky_almalinux_centos_8_9_epel_menu
+            rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
@@ -1385,7 +1385,7 @@ centos_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)启用CentOS Stream 9 crb仓库
+3)启用CentOS Stream 9和10 crb仓库
 4)启用CentOS Stream 8 PowerTools仓库
 5)退出
 EOF
@@ -1399,9 +1399,9 @@ EOF
                     centos_stream_8_base_menu
                 else
                     if grep -Eqi "^baseurl" /etc/yum.repos.d/centos*.repo;then
-                        centos_stream_9_base_menu
+                        centos_stream_9_10_base_menu
                     else
-                        set_yum_centos_stream_9_perl
+                        set_yum_centos_stream_9_10_perl
                     fi
                 fi
             else
@@ -1412,11 +1412,11 @@ EOF
             if [ ${OS_RELEASE_VERSION} == "7" ];then
                 centos_7_epel_menu
             else
-                rocky_almalinux_centos_8_9_epel_menu
+                rocky_almalinux_centos_8_9_10_epel_menu
             fi
             ;;
         3)
-            if [ ${OS_RELEASE_VERSION} == "9" ];then
+            if [ ${OS_RELEASE_VERSION} == "9" -o ${OS_RELEASE_VERSION} == "10" ];then
                 set_crb_almalinux_centos_9
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
@@ -1690,7 +1690,12 @@ set_mirror_repository(){
 
 rocky_almalinux_centos_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
-    yum -y install gcc make autoconf gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
+    yum -y install gcc make autoconf gcc-c++ glibc glibc-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
+        yum -y install pcre pcre-devel &> /dev/null
+    else
+        yum -y install pcre2 pcre2-devel &> /dev/null
+    fi
     ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
 }
 
@@ -1733,11 +1738,19 @@ disable_selinux(){
 }
 
 set_swap(){
-    sed -ri 's/.*swap.*/#&/' /etc/fstab
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
-            SD_NAME=`lsblk|awk -F"[ └─]" '/SWAP/{printf $3}'`
-            systemctl mask dev-${SD_NAME}.swap &> /dev/null
+    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+        if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
+            sed -ri 's/.*swap.*/#&/' /etc/fstab 
+        else
+            sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
+        fi
+    else
+        sed -ri 's/.*swap.*/#&/' /etc/fstab
+        if [ ${OS_ID} == "Ubuntu" ];then
+            if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
+                SD_NAME=`swapon --show | awk -F"[ /]" '/partition/{printf $3}'`
+                systemctl mask dev-${SD_NAME}.swap &> /dev/null
+            fi
         fi
     fi
     swapoff -a
@@ -2183,7 +2196,8 @@ set_history_env(){
 }
 
 disable_restart(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
+    if [ ${START_STATUS} == "enabled" ];then
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target

@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS、OpencloudOS和openSUSE系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS、OpenCloudOS和openSUSE系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -13,7 +13,7 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8和9、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8和23；OpencloudOS版支持的系统：OpencloudOS 8和9；openSUSE版支持的系统：openSUSE 15。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15。 |
 
 **v9_1和v9_2版本的区别：**
 
@@ -29,34 +29,31 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 
 | 版本                    | 功能                                                         |
 | ----------------------- | ------------------------------------------------------------ |
-| openSUSE版更新的内容    | 1.由于openSUSE系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                         | 2.添加了对openSUSE 15系统的支持；                            |
-|                         | 3.修复了“禁用SWAP”不生效的问题；                             |
-|                         | 4.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                         | 5.修复了“设置PS1”不生效的问题；                              |
-|                         | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
-| OpencloudOS版更新的内容 | 1.由于OpencloudOS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                         | 2.添加了对OpencloudOS 8和9系统的支持；                       |
-|                         | 3.修复了“禁用SWAP”不生效的问题；                             |
-|                         | 4.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                         | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
-| Anolis OS版更新的内容   | 1.由于Anolis OS系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                         | 2.添加了对Anolis OS 8和23系统的支持；                        |
-|                         | 3.修复了“禁用SWAP”不生效的问题；                             |
-|                         | 4.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                         | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
-| openEuler版更新的内容   | 1.由于openEuler系统跟别的系统版本有差异，所以这个写了一个单独版本； |
-|                         | 2.添加了对openEuler 22.03和24.03系统的支持；                 |
-|                         | 3.修复了“禁用SWAP”不生效的问题；                             |
-|                         | 4.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                         | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
+| openSUSE版更新的内容    | 1.添加了对openSUSE 15系统的支持；                            |
+|                         | 2.修复了“禁用SWAP”不生效的问题；                             |
+|                         | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
+|                         | 4.修复了“设置PS1”不生效的问题；                              |
+|                         | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
+| OpenCloudOS版更新的内容 | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
+|                         | 2.修复了“禁用SWAP”不生效的问题；                             |
+|                         | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
+|                         | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
+| Anolis OS版更新的内容   | 1.添加了对Anolis OS 8和23系统的支持；                        |
+|                         | 2.修复了“禁用SWAP”不生效的问题；                             |
+|                         | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
+|                         | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
+| openEuler版更新的内容   | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
+|                         | 2.修复了“禁用SWAP”不生效的问题；                             |
+|                         | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
+|                         | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
 | v9版更新内容            | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                         | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                         | 3.添加了对Debian 11和12系统的支持；                          |
 |                         | 4.添加了Almalinux的devel仓库；                               |
 |                         | 5.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                         | 6.修改了某些bug。                                            |
-|                         | 7.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/v9”目录下。 |
+|                         | 6.添加了对CentOS Stream 10系统的支持，修复了“禁用SWAP”不生效的问题，CentOS Stream 10系统pcre安装包名改成了pcre2，pcre-devel安装包名改成了pcre2-devel; |
+|                         | 7.修改了某些bug。                                            |
+|                         | 8.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/v9”目录下。 |
 | v8版更新内容            | 1.添加了对AlmaLinux 8和9系统的支持；                         |
 |                         | 2.添加Ubuntu卸载snap的功能；                                 |
 |                         | 3.修改了某些bug。                                            |

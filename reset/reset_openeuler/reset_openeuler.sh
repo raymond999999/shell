@@ -681,7 +681,10 @@ set_history_env(){
 }
 
 disable_restart(){
-    systemctl disable ctrl-alt-del.target
+    START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
+    if [ ${START_STATUS} == "enabled" ];then
+        systemctl disable ctrl-alt-del.target
+    fi
     systemctl mask ctrl-alt-del.target
     ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
 }

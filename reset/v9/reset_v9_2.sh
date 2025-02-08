@@ -3,12 +3,12 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-01-11
+#Date:          2025-02-07
 #FileName:      reset_v9_2.sh
 #MIRROR:        raymond.blog.csdn.net
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
-#               CentOS Stream 8 and 9, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
+#               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
 #               Debian 11 and 12“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
@@ -1556,7 +1556,7 @@ EOF
     done
 }
 
-set_yum_centos_stream_9(){
+set_yum_centos_stream_9_10(){
     [ -d /etc/yum.repos.d/backup ] || { mkdir /etc/yum.repos.d/backup; mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/backup; }
     cat > /etc/yum.repos.d/base.repo <<-EOF
 [BaseOS]
@@ -1583,7 +1583,7 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-centos_stream_9_base_menu(){
+centos_stream_9_10_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1605,43 +1605,43 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         2)
             huawei
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         3)
             tencent
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         4)
             tuna
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         5)
             nju
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         6)
             ustc
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         7)
             bfsu
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         8)
             pku
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         9)
             cqupt
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         10)
             volces
-            set_yum_centos_stream_9
+            set_yum_centos_stream_9_10
             ;;
         11)
             break
@@ -1653,7 +1653,7 @@ EOF
     done
 }
 
-set_crb_centos_stream_9(){
+set_crb_centos_stream_9_10(){
     cat > /etc/yum.repos.d/crb.repo <<-EOF
 [crb]
 name=crb
@@ -1667,7 +1667,7 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
 }
 
-centos_stream_9_crb_menu(){
+centos_stream_9_10_crb_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1689,43 +1689,43 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         2)
             huawei
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         3)
             tencent
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         4)
             tuna
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         5)
             nju
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         6)
             ustc
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         6)
             bfsu
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;			
         8)
             pku
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         9)
             cqupt
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         10)
             volces
-            set_crb_centos_stream_9
+            set_crb_centos_stream_9_10
             ;;
         11)
             break
@@ -1918,7 +1918,7 @@ EOF
     done
 }
 
-set_epel_rocky_almalinux_centos_8_9(){
+set_epel_rocky_almalinux_centos_8_9_10(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     if [ ${MIRROR_URL} == "sohu" ];then
         cat > /etc/yum.repos.d/epel.repo <<-EOF
@@ -1951,7 +1951,7 @@ EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
 }
 
-rocky_almalinux_centos_8_9_epel_menu(){
+rocky_almalinux_centos_8_9_10_epel_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1978,63 +1978,63 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         2)
             huawei
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         3)
             tencent
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         4)
             tuna
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         5)
             sohu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         6)
             nju
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         7)
             ustc
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         8)
             sjtu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         9)
             xjtu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         10)
             bfsu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         11)
             pku
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         12)
             zju
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         13)
             lzu
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         14)
             cqupt
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         15)
             volces
-            set_epel_rocky_almalinux_centos_8_9
+            set_epel_rocky_almalinux_centos_8_9_10
             ;;
         16)
             break
@@ -2226,7 +2226,7 @@ EOF
             fi
             ;;
         2)
-            rocky_almalinux_centos_8_9_epel_menu
+            rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
@@ -2275,7 +2275,7 @@ EOF
             fi
             ;;
         2)
-            rocky_almalinux_centos_8_9_epel_menu
+            rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
             if [ ${OS_RELEASE_VERSION} == "9" ];then
@@ -2314,7 +2314,7 @@ centos_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)CentOS Stream 9 crb仓库
+3)CentOS Stream 9和10 crb仓库
 4)CentOS Stream 8 PowerTools仓库
 5)退出
 EOF
@@ -2327,7 +2327,7 @@ EOF
                 if [ ${OS_RELEASE_VERSION} == "8" ];then
                     centos_stream_8_base_menu
                 else
-                    centos_stream_9_base_menu
+                    centos_stream_9_10_base_menu
                 fi
             else
                 centos_7_base_menu
@@ -2337,12 +2337,12 @@ EOF
             if [ ${OS_RELEASE_VERSION} == "7" ];then
                 centos_7_epel_menu
             else
-                rocky_almalinux_centos_8_9_epel_menu
+                rocky_almalinux_centos_8_9_10_epel_menu
             fi
             ;;
         3)
-            if [ ${OS_RELEASE_VERSION} == "9" ];then
-                centos_stream_9_crb_menu
+            if [ ${OS_RELEASE_VERSION} == "9" -o ${OS_RELEASE_VERSION} == "10" ];then
+                centos_stream_9_10_crb_menu
             else
                 ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
             fi
@@ -2693,11 +2693,19 @@ disable_selinux(){
 }
 
 set_swap(){
-    sed -ri 's/.*swap.*/#&/' /etc/fstab
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
-            SD_NAME=`lsblk|awk -F"[ └─]" '/SWAP/{printf $3}'`
-            systemctl mask dev-${SD_NAME}.swap &> /dev/null
+    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+        if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
+            sed -ri 's/.*swap.*/#&/' /etc/fstab 
+        else
+            sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
+        fi
+    else
+        sed -ri 's/.*swap.*/#&/' /etc/fstab
+        if [ ${OS_ID} == "Ubuntu" ];then
+            if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
+                SD_NAME=`swapon --show | awk -F"[ /]" '/partition/{printf $3}'`
+                systemctl mask dev-${SD_NAME}.swap &> /dev/null
+            fi
         fi
     fi
     swapoff -a
@@ -3143,7 +3151,8 @@ set_history_env(){
 }
 
 disable_restart(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
+    if [ ${START_STATUS} == "enabled" ];then
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target

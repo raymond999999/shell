@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-07
+#Date:          2025-02-08
 #FileName:      reset_v9_2.sh
-#MIRROR:        raymond.blog.csdn.net
+#MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 

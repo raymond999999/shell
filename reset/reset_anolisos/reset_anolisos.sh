@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-01-11
+#Date:          2025-02-08
 #FileName:      reset_anolisos.sh
-#MIRROR:        raymond.blog.csdn.net
+#MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
 #               “Anolis OS 8 and 23“ operating systems.
 #Copyright (C): 2025 All rights reserved

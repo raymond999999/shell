@@ -2693,8 +2693,7 @@ disable_selinux(){
 }
 
 set_swap(){
-    SWAP_TOTAL=`free | awk -F" " '/Swap/{print $2}'`
-	if [ ${SWAP_TOTAL} == "0" ];then
+	if grep -Eqi "noauto" /etc/fstab;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
         if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
@@ -2703,7 +2702,7 @@ set_swap(){
             sed -ri.bak '/swap/s/(.*)(sw)(.*)/\1\2,noauto\3/g' /etc/fstab
         fi
         swapoff -a
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap已设置成功,请重启系统后生效!"${END}
     fi
 }
 

@@ -1743,19 +1743,9 @@ set_swap(){
         ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
         if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-            if [ ${OS_RELEASE_VERSION} == "7" ];then
-                sed -ri 's/.*swap.*/#&/' /etc/fstab 
-            else
-                systemctl mask swap.target &> /dev/null
-            fi
-        elif [ ${OS_ID} == "Ubuntu" ];then
-            if [ ${OS_RELEASE_VERSION} == 18 ];then
-                sed -ri 's/.*swap.*/#&/' /etc/fstab
-            else
-                systemctl mask swap.target &> /dev/null
-            fi
+            sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
 	    else
-            systemctl mask swap.target &> /dev/null
+            sed -ri.bak '/swap/s/(.*)(sw)(.*)/\1\2,noauto\3/g' /etc/fstab
         fi
         swapoff -a
         ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}

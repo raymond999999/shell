@@ -328,7 +328,7 @@ set_swap(){
 	if [ ${SWAP_TOTAL} == "0" ];then
         ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
-        systemctl mask swap.target &> /dev/null
+        sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
         swapoff -a
         ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
     fi

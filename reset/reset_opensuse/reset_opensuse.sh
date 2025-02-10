@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-08
+#Date:          2025-02-10
 #FileName:      reset_opensuse.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -315,9 +315,14 @@ disable_apparmor(){
 }
 
 set_swap(){
-    sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
-    swapoff -a
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
+    SWAP_TOTAL=`free | awk -F" " '/Swap/{print $2}'`
+	if [ ${SWAP_TOTAL} == "0" ];then
+        ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
+    else
+        systemctl mask swap.target &> /dev/null
+        swapoff -a
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
+    fi
 }
 
 set_localtime(){

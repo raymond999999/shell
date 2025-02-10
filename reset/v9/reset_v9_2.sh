@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-08
+#Date:          2025-02-10
 #FileName:      reset_v9_2.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -2693,23 +2693,28 @@ disable_selinux(){
 }
 
 set_swap(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
-            sed -ri 's/.*swap.*/#&/' /etc/fstab 
-        else
-            sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
-        fi
+    SWAP_TOTAL=`free | awk -F" " '/Swap/{print $2}'`
+	if [ ${SWAP_TOTAL} == "0" ];then
+        ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
-        sed -ri 's/.*swap.*/#&/' /etc/fstab
-        if [ ${OS_ID} == "Ubuntu" ];then
-            if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
-                SD_NAME=`swapon --show | awk -F"[ /]" '/partition/{printf $3}'`
-                systemctl mask dev-${SD_NAME}.swap &> /dev/null
+        if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+            if [ ${OS_RELEASE_VERSION} == "7" ];then
+                sed -ri 's/.*swap.*/#&/' /etc/fstab 
+            else
+                systemctl mask swap.target &> /dev/null
             fi
+        elif [ ${OS_ID} == "Ubuntu" ];then
+            if [ ${OS_RELEASE_VERSION} == 18 ];then
+                sed -ri 's/.*swap.*/#&/' /etc/fstab
+            else
+                systemctl mask swap.target &> /dev/null
+            fi
+	    else
+            systemctl mask swap.target &> /dev/null
         fi
+        swapoff -a
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
     fi
-    swapoff -a
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap成功!"${END}
 }
 
 set_localtime(){

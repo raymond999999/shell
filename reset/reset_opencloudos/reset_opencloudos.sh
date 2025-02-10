@@ -226,7 +226,7 @@ disable_selinux(){
 }
 
 set_swap(){
-	if grep -Eqi "noauto" /etc/fstab;then
+    if grep -Eqi "noauto" /etc/fstab;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
         sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab

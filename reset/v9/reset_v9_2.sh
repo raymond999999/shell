@@ -2693,7 +2693,7 @@ disable_selinux(){
 }
 
 set_swap(){
-	if grep -Eqi "noauto" /etc/fstab;then
+    if grep -Eqi "noauto" /etc/fstab;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
     else
         if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then

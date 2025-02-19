@@ -29,7 +29,7 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 
 | 版本                     | 功能                                                         |
 | ------------------------ | ------------------------------------------------------------ |
-| Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）系统的支持；               |
+| Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
 |                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_kylinserver”目录下。 |
 | openSUSE版更新的内容     | 1.添加了对openSUSE 15系统的支持；                            |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |

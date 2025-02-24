@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS、OpenCloudOS、openSUSE和银河麒麟（Kylin Server）系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（Uos Server）系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -13,7 +13,7 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
 
 **v9_1和v9_2版本的区别：**
 
@@ -29,13 +29,16 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 
 | 版本                     | 功能                                                         |
 | ------------------------ | ------------------------------------------------------------ |
+| Uos Server版更新的内容   | 1.添加了对统信（Uos Server）V20系统的支持；                  |
+|                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server”目录下。 |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
-|                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_kylinserver”目录下。 |
+|                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server”目录下。 |
 | openSUSE版更新的内容     | 1.添加了对openSUSE 15系统的支持；                            |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.修复了“设置PS1”不生效的问题；                              |
-|                          | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
+|                          | 5.openSUSE 15系统pcre安装包名改成了pcre-tools，openssl-dever安装包名改成了libopenssl-devel； |
+|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -43,7 +46,7 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 | Anolis OS版更新的内容    | 1.添加了对Anolis OS 8和23系统的支持；                        |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                          | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
+|                          | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolis_os”目录下。 |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |

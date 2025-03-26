@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-19
+#Date:          2025-03-26
 #FileName:      reset_opensuse.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -165,6 +165,10 @@ volces(){
     MIRROR=mirrors.volces.com
 }
 
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_zypper(){
     [ -d /etc/zypp/repos.d/backup ] || { mkdir /etc/zypp/repos.d/backup; mv /etc/zypp/repos.d/*.repo /etc/zypp/repos.d/backup; }
     zypper ar -cfg 'https://'${MIRROR}'/opensuse/distribution/leap/$releasever/repo/oss/' mirror-oss
@@ -197,11 +201,12 @@ base_menu(){
 13)兰州大学镜像源
 14)重庆邮电大学镜像源
 15)火山引擎镜像源
-16)退出
+16)中国科学院软件研究所镜像源
+17)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-16): " NUM
+        read -p "请输入镜像源编号(1-17): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -264,10 +269,14 @@ EOF
             set_zypper
             ;;
         16)
+            iscas
+            set_zypper
+            ;;
+        17)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-16)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-17)!"${END}
             ;;
         esac
     done

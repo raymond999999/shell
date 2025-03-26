@@ -7,7 +7,7 @@ Gitee：https://gitee.com/raymond9/shell
 Github：https://github.com/raymond999999/shell
 ```
 
-脚本可以去上面的Gitee或Github代码仓库拉取。
+您可以从上方的Gitee或Github代码仓库中拉取脚本。
 
 **支持的功能和系统：**
 

@@ -13,14 +13,14 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky Linux 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
 
 **版本更新日志：**
 
 | 版本                     | 功能                                                         |
 | ------------------------ | ------------------------------------------------------------ |
 | v10版更新内容            | 1.为Rocky Linux 9、AlmaLinux 9、CentOS Stream 9及10添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
-|                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_v10”目录下。 |
 | Uos Server版更新的内容   | 1.添加了对统信（Uos Server）V20系统的支持；                  |
 |                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server”目录下。 |

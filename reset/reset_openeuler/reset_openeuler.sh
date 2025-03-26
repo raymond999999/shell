@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-10
+#Date:          2025-03-26
 #FileName:      reset_openeuler.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -28,7 +28,8 @@ set_eth(){
         grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
 
         mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,请重新启动系统后生效!"${END}
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，10秒后，机器会自动重启!"${END}
+	    sleep 10 && shutdown -r now
     fi   
 }
 
@@ -49,7 +50,8 @@ check_ip(){
     fi
 }
 
-set_network(){
+set_network_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -71,9 +73,9 @@ set_network(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
-NAME=eth0
-DEVICE=eth0
+    cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} <<-EOF
+NAME=${ETHNAME}
+DEVICE=${ETHNAME}
 ONBOOT=yes
 BOOTPROTO=none
 TYPE=Ethernet
@@ -83,58 +85,35 @@ GATEWAY=${GATEWAY}
 DNS1=${PRIMARY_DNS}
 DNS2=${BACKUP_DNS}
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
-set_dual_network(){
-    while true; do
-        read -p "请输入第一块网卡IP地址: " IP
-        check_ip ${IP}
-        [ $? -eq 0 ] && break
-    done
-    read -p "请输入子网掩码位数: " PREFIX
-    while true; do
-        read -p "请输入网关地址: " GATEWAY
-        check_ip ${GATEWAY}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入主DNS地址（例如：阿里：223.5.5.5，腾讯：119.29.29.29，公共：114.114.114.114，google：8.8.8.8等）: " PRIMARY_DNS
-        check_ip ${PRIMARY_DNS}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入备用DNS地址（例如：阿里：223.6.6.6，腾讯：119.28.28.28，公共：114.114.115.115，google：8.8.4.4等）: " BACKUP_DNS
-        check_ip ${BACKUP_DNS}
-        [ $? -eq 0 ] && break
-    done
+set_network_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
-NAME=eth0
-DEVICE=eth0
-ONBOOT=yes
-BOOTPROTO=none
-TYPE=Ethernet
-IPADDR=${IP}
-PREFIX=${PREFIX}
-GATEWAY=${GATEWAY}
-DNS1=${PRIMARY_DNS}
-DNS2=${BACKUP_DNS}
-EOF
-    cat > /etc/sysconfig/network-scripts/ifcfg-eth1 <<-EOF
-NAME=eth1
-DEVICE=eth1
+    cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
+NAME=${ETHNAME2}
+DEVICE=${ETHNAME2}
 ONBOOT=yes
 BOOTPROTO=none
 TYPE=Ethernet
 IPADDR=${IP2}
 PREFIX=${PREFIX2}
 EOF
+}
+
+set_network(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
+        set_network_eth0
+    else
+        set_network_eth0
+        set_network_eth1
+    fi
     ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
@@ -200,6 +179,10 @@ volces(){
     MIRROR=mirrors.volces.com
 }
 
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_yum(){
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/openEuler.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
@@ -231,11 +214,12 @@ base_menu(){
 12)兰州大学镜像源
 13)重庆邮电大学镜像源
 14)火山引擎镜像源
-15)退出
+15)中国科学院软件研究所镜像源
+16)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-15): " NUM
+        read -p "请输入镜像源编号(1-16): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -294,10 +278,14 @@ EOF
             set_yum
             ;;
         15)
+            iscas
+            set_yum
+            ;;
+        16)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-15)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-16)!"${END}
             ;;
         esac
     done
@@ -699,23 +687,23 @@ menu(){
         cat <<-EOF
 ***************************************************************
 *                   系统初始化脚本菜单                        *
-* 1.修改网卡名                13.优化SSH                      *
-* 2.设置网络(单网卡)          14.更改SSH端口号                *
-* 3.设置网络(双网卡)          15.设置系统别名                 *
-* 4.设置主机名                16.设置vimrc配置文件            *
-* 5.设置镜像仓库              17.安装邮件服务并配置邮件       *
-* 6.Minimal安装建议安装软件   18.设置PS1(请进入选择颜色)      *
-* 7.关闭防火墙                19.设置默认文本编辑器为vim      *
-* 8.禁用SELinux               20.设置history格式              *
-* 9.禁用SWAP                  21.禁用ctrl+alt+del重启系统功能 *
-* 10.设置系统时区             22.重启系统                     *
-* 11.优化资源限制参数         23.关机                         *
-* 12.优化内核参数             24.退出                         *
+* 1.修改网卡名                13.更改SSH端口号                *
+* 2.设置网络                  14.设置系统别名                 *
+* 3.设置主机名                15.设置vimrc配置文件            *
+* 4.设置镜像仓库              16.安装邮件服务并配置邮件       *
+* 5.Minimal安装建议安装软件   17.设置PS1(请进入选择颜色)      *
+* 6.关闭防火墙                18.设置默认文本编辑器为vim      *
+* 7.禁用SELinux               19.设置history格式              *
+* 8.禁用SWAP                  20.禁用ctrl+alt+del重启系统功能 *
+* 9.设置系统时区              21.重启系统                     *
+* 10.优化资源限制参数         22.关机                         *
+* 11.优化内核参数             23.退出                         *
+* 12.优化SSH                                                  *
 ***************************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-24): " choice
+        read -p "请选择相应的编号(1-23): " choice
         case ${choice} in
         1)
             set_eth
@@ -724,73 +712,70 @@ EOF
             set_network
             ;;
         3)
-            set_dual_network
-            ;;
-        4)
             set_hostname
             ;;
-        5)
+        4)
             base_menu
             ;;
-        6)
+        5)
             minimal_install
             ;;
-        7)
+        6)
             disable_firewalls
             ;;
-        8)
+        7)
             disable_selinux
             ;;
-        9)
+        8)
             set_swap
             ;;
-        10)
+        9)
             set_localtime
             ;;
-        11)
+        10)
             set_limits
             ;;
-        12)
+        11)
             set_kernel
             ;;
-        13)
+        12)
             optimization_ssh
             ;;
-        14)
+        13)
             set_ssh_port
             ;;
-        15)
+        14)
             set_alias
             ;;
-        16)
+        15)
             set_vimrc
             ;;
-        17)
+        16)
             set_mail
             ;;
-        18)
+        17)
             set_ps1
             ;;
-        19)
+        18)
             set_vim_env
             ;;
-        20)
+        19)
             set_history_env
             ;;
-        21)
+        20)
             disable_restart
             ;;
-        22)
+        21)
             reboot
             ;;
-        23)
+        22)
             shutdown -h now
             ;;
-        24)
+        23)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-24)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-23)!"${END}
             ;;
         esac
     done

@@ -3,11 +3,11 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-10
+#Date:          2025-03-26
 #FileName:      reset_anolisos.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
-#               “Anolis OS 8 and 23“ operating systems.
+#               “AnolisOS 8 and 23“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
@@ -17,6 +17,84 @@ os(){
     OS_ID=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
     OS_RELEASE=`sed -rn '/^VERSION_ID=/s@.*="?([0-9.]+)"?@\1@p' /etc/os-release`
     OS_RELEASE_VERSION=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+}
+
+set_anolis_7_8_eth(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
+    else
+        sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
+        grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
+    fi   
+}
+
+set_anolis_7_8_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    ETHMAC=`ip addr show ${ETHNAME} | awk -F' ' '/ether/{print $2}'`
+    cat >> /etc/udev/rules.d/10-network.rules << EOF
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="${ETHMAC}", NAME="eth0"
+EOF
+}
+
+set_anolis_7_8_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
+    ETHMAC2=`ip addr show ${ETHNAME2} | awk -F' ' '/ether/{print $2}'`
+    cat >> /etc/udev/rules.d/10-network.rules << EOF
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="${ETHMAC2}", NAME="eth1"
+EOF
+}
+
+set_anolis_23_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    ETHMAC=`ip addr show ${ETHNAME} | awk -F' ' '/ether/{print $2}'`
+    mkdir -p /etc/systemd/network/
+    touch /etc/systemd/network/70-eth0.link
+    cat > /etc/systemd/network/70-eth0.link <<-EOF
+[Match]
+MACAddress=${ETHMAC}
+
+[Link]
+Name=eth0
+EOF
+    mv /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection /etc/NetworkManager/system-connections/eth0.nmconnection
+}
+
+set_anolis_23_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
+    ETHMAC2=`ip addr show ${ETHNAME2} | awk -F' ' '/ether/{print $2}'`
+    touch /etc/systemd/network/70-eth1.link
+    cat > /etc/systemd/network/70-eth1.link <<-EOF
+[Match]
+MACAddress=${ETHMAC2}
+
+[Link]
+Name=eth1
+EOF
+}
+
+set_eth(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        if [ ${IP_NUM} == "2" ];then
+            set_anolis_7_8_eth
+            set_anolis_7_8_eth0
+        else
+            set_anolis_7_8_eth
+            set_anolis_7_8_eth0
+            set_anolis_7_8_eth1
+        fi
+    else
+        if [ ${IP_NUM} == "2" ];then
+            set_anolis_23_eth0
+        else
+            set_anolis_23_eth0
+            set_anolis_23_eth1
+        fi
+    fi
+	${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
+    sleep 10 && shutdown -r now
 }
 
 check_ip(){
@@ -36,9 +114,9 @@ check_ip(){
     fi
 }
 
-set_network(){
+set_network_eth0(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
+    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`	
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -60,50 +138,95 @@ set_network(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
-    nmcli connection delete ${ETHNAME} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-    nmcli con reload && nmcli dev up ${ETHNAME} >& /dev/null
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME}
+        cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
+NAME=${ETHNAME}
+DEVICE=${ETHNAME}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP}
+PREFIX=${PREFIX}
+GATEWAY=${GATEWAY}
+DNS1=${PRIMARY_DNS}
+DNS2=${BACKUP_DNS}
+EOF
+    else
+        cat > /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME}
+type=ethernet
+interface-name=${ETHNAME}
+
+[ethernet]
+
+[ipv4]
+address1=${IP}/${PREFIX},${GATEWAY}
+dns=${PRIMARY_DNS};${BACKUP_DNS};
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]
+EOF
+    fi
 }
 
-set_dual_network(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+set_network_eth1(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    CONNECTION_NAME1=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
     CONNECTION_NAME2=`nmcli dev | awk 'NR==3{print $4,$5,$6}'`
-    while true; do
-        read -p "请输入第一块网卡IP地址: " IP
-        check_ip ${IP}
-        [ $? -eq 0 ] && break
-    done
-    read -p "请输入子网掩码位数: " PREFIX
-    while true; do
-        read -p "请输入网关地址: " GATEWAY
-        check_ip ${GATEWAY}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入主DNS地址（例如：阿里：223.5.5.5，腾讯：119.29.29.29，公共：114.114.114.114，google：8.8.8.8等）: " PRIMARY_DNS
-        check_ip ${PRIMARY_DNS}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入备用DNS地址（例如：阿里：223.6.6.6，腾讯：119.28.28.28，公共：114.114.115.115，google：8.8.4.4等）: " BACKUP_DNS
-        check_ip ${BACKUP_DNS}
-        [ $? -eq 0 ] && break
-    done
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
-    nmcli connection delete ${ETHNAME} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-    nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2} && nmcli connection delete ${ETHNAME2} >& /dev/null && \
-    nmcli connection add type ethernet con-name ${ETHNAME2} ifname ${ETHNAME2} ipv4.method manual ipv4.address "${IP2}/${PREFIX2}" autoconnect yes >& /dev/null && \
-    nmcli con reload && nmcli dev up ${ETHNAME} ${ETHNAME2} >& /dev/null
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
+NAME=${ETHNAME2}
+DEVICE=${ETHNAME2}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP2}
+PREFIX=${PREFIX2}
+EOF
+    else
+        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2}
+        cat > /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME2}
+type=ethernet
+interface-name=${ETHNAME2}
+
+[ethernet]
+
+[ipv4]
+address1=${IP2}/${PREFIX2}
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]
+EOF
+        chmod 600 /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection
+    fi
+}
+
+set_network(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
+        set_network_eth0
+    else
+        set_network_eth0
+        set_network_eth1
+    fi
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
 set_hostname(){
@@ -120,13 +243,26 @@ nju(){
     MIRROR=mirrors.nju.edu.cn
 }
 
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
+}
+
 set_yum(){
-    OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/AnolisOS*.repo | head -1)
-    OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
-    if [ ${OLD_MIRROR_URL} == "openanolis" ];then
-        sed -i.bak -e 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'|g' /etc/yum.repos.d/AnolisOS*.repo
+    MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
+    OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/AnolisOS*.repo | head -1)
+    OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/AnolisOS*.repo | head -1)
+    if [ ${MIRROR_URL} == "iscas" ];then
+        if [ ${OLD_DIR} == 'anolis' ];then
+            sed -i.bak -e 's|http.*://'${OLD_MIRROR}'/anolis|https://'${MIRROR}'/openanolis|g' /etc/yum.repos.d/AnolisOS*.repo
+        else
+            sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/openanolis|baseurl=https://'${MIRROR}'/openanolis|g' /etc/yum.repos.d/AnolisOS*.repo
+        fi
     else
-        sed -i -e 's|'${OLD_MIRROR}'|'${MIRROR}'|g' /etc/yum.repos.d/AnolisOS*.repo
+        if [ ${OLD_DIR} == 'anolis' ];then
+            sed -i.bak -e 's|http.*://'${OLD_MIRROR}'/anolis|https://'${MIRROR}'/anolis|g' /etc/yum.repos.d/AnolisOS*.repo
+        else
+            sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/openanolis|baseurl=https://'${MIRROR}'/anolis|g' /etc/yum.repos.d/AnolisOS*.repo
+        fi
     fi
     ${COLOR}"更新镜像源中,请稍等..."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
@@ -139,11 +275,12 @@ base_menu(){
         cat <<-EOF
 1)阿里镜像源
 2)南京大学镜像源
-3)退出
+3)中国科学院软件研究所镜像源
+4)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-3): " NUM
+        read -p "请输入镜像源编号(1-4): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -154,10 +291,14 @@ EOF
             set_yum
             ;;
         3)
+            iscas
+            set_yum
+            ;;
+        4)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-3)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
             ;;
         esac
     done
@@ -574,31 +715,31 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-*********************************************************
-*             系统初始化脚本菜单                        *
-* 1.设置网络(单网卡)    13.更改SSH端口号                *
-* 2.设置网络(双网卡)    14.设置系统别名                 *
-* 3.设置主机名          15.设置vimrc配置文件            *
-* 4.设置镜像仓库        16.安装邮件服务并配置邮件       *
-* 5.建议安装软件        17.设置PS1(请进入选择颜色)      *
-* 6.关闭防火墙          18.设置默认文本编辑器为vim      *
-* 7.禁用AppArmor        19.设置history格式              *
-* 8.禁用SWAP            20.禁用ctrl+alt+del重启系统功能 *
-* 9.设置系统时区        21.重启系统                     *
-* 10.优化资源限制参数   22.关机                         *
-* 11.优化内核参数       23.退出                         *
-* 12.优化SSH                                            *
-*********************************************************
+***************************************************************
+*                   系统初始化脚本菜单                        *
+* 1.修改网卡名                13.更改SSH端口号                *
+* 2.设置网络                  14.设置系统别名                 *
+* 3.设置主机名                15.设置vimrc配置文件            *
+* 4.设置镜像仓库              16.安装邮件服务并配置邮件       *
+* 5.Minimal安装建议安装软件   17.设置PS1(请进入选择颜色)      *
+* 6.关闭防火墙                18.设置默认文本编辑器为vim      *
+* 7.禁用SELinux               19.设置history格式              *
+* 8.禁用SWAP                  20.禁用ctrl+alt+del重启系统功能 *
+* 9.设置系统时区              21.重启系统                     *
+* 10.优化资源限制参数         22.关机                         *
+* 11.优化内核参数             23.退出                         *
+* 12.优化SSH                                                  *
+***************************************************************
 EOF
         echo -e '\E[0m'
 
         read -p "请选择相应的编号(1-23): " choice
         case ${choice} in
         1)
-            set_network
+            set_eth
             ;;
         2)
-            set_dual_network
+            set_network
             ;;
         3)
             set_hostname

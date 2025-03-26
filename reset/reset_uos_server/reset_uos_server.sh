@@ -3,8 +3,8 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-24
-#FileName:      reset_opencloudos.sh
+#Date:          2025-03-26
+#FileName:      reset_uos_server.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
 #               “Uos Server v20“ operating systems.
@@ -643,7 +643,7 @@ EOF
 
 main(){
     os
-    if [ ${OS_ID} == "UOS" ];then
+    if [ ${OS_ID} == "Kylin" ];then
         menu
     else
         ${COLOR}"此脚本不支持${OS_ID} ${OS_RELEASE} 系统!"${END}

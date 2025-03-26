@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-10
+#Date:          2025-03-19
 #FileName:      reset_opensuse.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -36,7 +36,7 @@ check_ip(){
     fi
 }
 
-set_network(){
+set_network_eth0(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
@@ -63,67 +63,40 @@ set_network(){
 STARTMODE='auto'
 BOOTPROTO='static'
 ZONE=public
-IPADDR='${IP}'
-PREFIXLEN='${PREFIX}'
+IPADDR='${IP}/${PREFIX}'
 EOF
     touch /etc/sysconfig/network/routes
     cat > /etc/sysconfig/network/routes  <<-EOF
 default ${GATEWAY} - -
 EOF
     sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"${PRIMARY_DNS} ${BACKUP_DNS}"/g' /etc/sysconfig/network/config
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请重新启动系统后生效!"${END}
 }
 
-set_dual_network(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+set_network_eth1(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    while true; do
-        read -p "请输入第一块网卡IP地址: " IP
-        check_ip ${IP}
-        [ $? -eq 0 ] && break
-    done
-    read -p "请输入子网掩码位数: " PREFIX
-    while true; do
-        read -p "请输入网关地址: " GATEWAY
-        check_ip ${GATEWAY}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入主DNS地址（例如：阿里：223.5.5.5，腾讯：119.29.29.29，公共：114.114.114.114，google：8.8.8.8等）: " PRIMARY_DNS
-        check_ip ${PRIMARY_DNS}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入备用DNS地址（例如：阿里：223.6.6.6，腾讯：119.28.28.28，公共：114.114.115.115，google：8.8.4.4等）: " BACKUP_DNS
-        check_ip ${BACKUP_DNS}
-        [ $? -eq 0 ] && break
-    done
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
-STARTMODE='auto'
-BOOTPROTO='static'
-ZONE=public
-IPADDR='${IP}'
-PREFIXLEN='${PREFIX}'
-EOF
-    touch /etc/sysconfig/network/routes
-    cat > /etc/sysconfig/network/routes  <<-EOF
-default ${GATEWAY} - -
-EOF
-    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"${PRIMARY_DNS} ${BACKUP_DNS}"/g' /etc/sysconfig/network/config
     cat > /etc/sysconfig/network/ifcfg-${ETHNAME2} <<-EOF
 STARTMODE='auto'
 BOOTPROTO='static'
 ZONE=public
-IPADDR='${IP2}'
-PREFIXLEN='${PREFIX2}'
+IPADDR='${IP2}/${PREFIX2}'
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请重新启动系统后生效!"${END}
+}
+
+set_network(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
+        set_network_eth0
+    else
+        set_network_eth0
+        set_network_eth1
+    fi
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
 }
 
 set_hostname(){
@@ -201,7 +174,7 @@ set_zypper(){
     zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/sle/' mirror-sle-update
     zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/backports/' mirror-backports-update
     ${COLOR}"更新镜像源中,请稍等..."${END}
-    zypper refresh
+    zypper clean &> /dev/null && zypper refresh &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} zypper源设置完成!"${END}
 }
 
@@ -302,7 +275,9 @@ EOF
 
 minimal_install(){
     ${COLOR}'开始安装“建议安装软件包”,请稍等......'${END}
-    zypper install -y gcc make autoconf gcc-c++ glibc-devel pcre pcre-devel openssl-devel systemd-devel zlib-devel lrzsz tree tmux tcpdump iotop bc unzip nfs-utils &> /dev/null
+    zypper addrepo https://download.opensuse.org/repositories/home:psi-jack/15.6/home:psi-jack.repo &> /dev/null
+    zypper --no-gpg-checks refresh &> /dev/null
+    zypper install -y gcc make autoconf gcc-c++ glibc-devel pcre-tools pcre-devel libopenssl-devel systemd-devel zlib-devel lrzsz tree tmux tcpdump iotop bc &> /dev/null
     ${COLOR}"${OS_ID} ${OS_RELEASE} 建议安装软件包已安装完成!"${END}
 }
 
@@ -688,97 +663,93 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-*********************************************************
-*             系统初始化脚本菜单                        *
-* 1.设置网络(单网卡)    13.更改SSH端口号                *
-* 2.设置网络(双网卡)    14.设置系统别名                 *
-* 3.设置主机名          15.设置vimrc配置文件            *
-* 4.设置镜像仓库        16.安装邮件服务并配置邮件       *
-* 5.建议安装软件        17.设置PS1(请进入选择颜色)      *
-* 6.关闭防火墙          18.设置默认文本编辑器为vim      *
-* 7.禁用AppArmor        19.设置history格式              *
-* 8.禁用SWAP            20.禁用ctrl+alt+del重启系统功能 *
-* 9.设置系统时区        21.重启系统                     *
-* 10.优化资源限制参数   22.关机                         *
-* 11.优化内核参数       23.退出                         *
-* 12.优化SSH                                            *
-*********************************************************
+*******************************************************
+*           系统初始化脚本菜单                        *
+* 1.设置网络          12.更改SSH端口号                *
+* 2.设置主机名        13.设置系统别名                 *
+* 3.设置镜像仓库      14.设置vimrc配置文件            *
+* 4.建议安装软件      15.安装邮件服务并配置邮件       *
+* 5.关闭防火墙        16.设置PS1(请进入选择颜色)      *
+* 6.禁用AppArmor      17.设置默认文本编辑器为vim      *
+* 7.禁用SWAP          18.设置history格式              *
+* 8.设置系统时区      19.禁用ctrl+alt+del重启系统功能 *
+* 9.优化资源限制参数  20.重启系统                     *
+* 10.优化内核参数     21.关机                         *
+* 11.优化SSH          22.退出                         *
+*******************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-23): " choice
+        read -p "请选择相应的编号(1-22): " choice
         case ${choice} in
         1)
             set_network
             ;;
         2)
-            set_dual_network
-            ;;
-        3)
             set_hostname
             ;;
-        4)
+        3)
             base_menu
             ;;
-        5)
+        4)
             minimal_install
             ;;
-        6)
+        5)
             disable_firewalls
             ;;
-        7)
+        6)
             disable_apparmor
             ;;
-        8)
+        7)
             set_swap
             ;;
-        9)
+        8)
             set_localtime
             ;;
-        10)
+        9)
             set_limits
             ;;
-        11)
+        10)
             set_kernel
             ;;
-        12)
+        11)
             optimization_ssh
             ;;
-        13)
+        12)
             set_ssh_port
             ;;
-        14)
+        13)
             set_alias
             ;;
-        15)
+        14)
             set_vimrc
             ;;
-        16)
+        15)
             set_mail
             ;;
-        17)
+        16)
             set_ps1
             ;;
-        18)
+        17)
             set_vim_env
             ;;
-        19)
+        18)
             set_history_env
             ;;
-        20)
+        19)
             disable_restart
             ;;
-        21)
+        20)
             reboot
             ;;
-        22)
+        21)
             shutdown -h now
             ;;
-        23)
+        22)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-23)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-22)!"${END}
             ;;
         esac
     done

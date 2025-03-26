@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-10
+#Date:          2025-03-26
 #FileName:      reset_opencloudos.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -19,22 +19,59 @@ os(){
     OS_RELEASE_VERSION=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
 }
 
-set_eth(){
-    if [ ${OS_RELEASE_VERSION} == "8" ];then
-        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-        if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-            ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
-        else
-            sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-            grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
-
-            mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
-            ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
-            sleep 10 && shutdown -r now
-        fi   
+set_opencloudos_7_8_eth(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
+        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 不能修改网卡名!"${END} 
-    fi 
+        sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
+        grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
+    fi   
+}
+
+set_opencloudos_9_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    ETHMAC=`ip addr show ${ETHNAME} | awk -F' ' '/ether/{print $2}'`
+    mkdir -p /etc/systemd/network/
+    touch /etc/systemd/network/70-eth0.link
+    cat > /etc/systemd/network/70-eth0.link <<-EOF
+[Match]
+MACAddress=${ETHMAC}
+
+[Link]
+Name=eth0
+EOF
+    mv /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection /etc/NetworkManager/system-connections/eth0.nmconnection
+}
+
+set_opencloudos_9_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
+    ETHMAC2=`ip addr show ${ETHNAME2} | awk -F' ' '/ether/{print $2}'`
+    touch /etc/systemd/network/70-eth1.link
+    cat > /etc/systemd/network/70-eth1.link <<-EOF
+[Match]
+MACAddress=${ETHMAC2}
+
+[Link]
+Name=eth1
+EOF
+}
+
+set_eth(){
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        set_opencloudos_7_8_eth
+    else
+        IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+        if [ ${IP_NUM} == "2" ];then
+            set_opencloudos_9_eth0
+        else
+            set_opencloudos_9_eth0
+            set_opencloudos_9_eth1
+        fi
+    fi
+	${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
+    sleep 10 && shutdown -r now
 }
 
 check_ip(){
@@ -54,9 +91,9 @@ check_ip(){
     fi
 }
 
-set_network(){
+set_network_eth0(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
+    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`	
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -78,65 +115,101 @@ set_network(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
-    if [ ${OS_RELEASE_VERSION} == "8" ];then
-        nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME} && \
-        nmcli connection delete ${ETHNAME} >& /dev/null && \
-        nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-        nmcli con reload && nmcli dev up ${ETHNAME} >& /dev/null
+    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME}
+        cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
+NAME=${ETHNAME}
+DEVICE=${ETHNAME}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP}
+PREFIX=${PREFIX}
+GATEWAY=${GATEWAY}
+DNS1=${PRIMARY_DNS}
+DNS2=${BACKUP_DNS}
+EOF
     else
-        nmcli connection delete ${ETHNAME} >& /dev/null && \
-        nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-        nmcli con reload && nmcli dev up ${ETHNAME} >& /dev/null
+        cat > /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME}
+type=ethernet
+interface-name=${ETHNAME}
+
+[ethernet]
+
+[ipv4]
+address1=${IP}/${PREFIX},${GATEWAY}
+dns=${PRIMARY_DNS};${BACKUP_DNS};
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]
+EOF
     fi
 }
 
-set_dual_network(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+set_network_eth1(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    CONNECTION_NAME1=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`
     CONNECTION_NAME2=`nmcli dev | awk 'NR==3{print $4,$5,$6}'`
-    while true; do
-        read -p "请输入第一块网卡IP地址: " IP
-        check_ip ${IP}
-        [ $? -eq 0 ] && break
-    done
-    read -p "请输入子网掩码位数: " PREFIX
-    while true; do
-        read -p "请输入网关地址: " GATEWAY
-        check_ip ${GATEWAY}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入主DNS地址（例如：阿里：223.5.5.5，腾讯：119.29.29.29，公共：114.114.114.114，google：8.8.8.8等）: " PRIMARY_DNS
-        check_ip ${PRIMARY_DNS}
-        [ $? -eq 0 ] && break
-    done
-    while true; do
-        read -p "请输入备用DNS地址（例如：阿里：223.6.6.6，腾讯：119.28.28.28，公共：114.114.115.115，google：8.8.4.4等）: " BACKUP_DNS
-        check_ip ${BACKUP_DNS}
-        [ $? -eq 0 ] && break
-    done
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，请使用新IP重新登录!"${END}
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
-        nmcli connection modify "${CONNECTION_NAME1}" con-name ${ETHNAME} && nmcli connection delete ${ETHNAME} >& /dev/null && \
-		nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2} && nmcli connection delete ${ETHNAME2} >& /dev/null && \
-		nmcli connection add type ethernet con-name ${ETHNAME2} ifname ${ETHNAME2} ipv4.method manual ipv4.address "${IP2}/${PREFIX2}" autoconnect yes >& /dev/null && \
-        nmcli con reload && nmcli dev up ${ETHNAME} ${ETHNAME2} >& /dev/null
+        cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
+NAME=${ETHNAME2}
+DEVICE=${ETHNAME2}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP2}
+PREFIX=${PREFIX2}
+EOF
     else
-        nmcli connection delete ${ETHNAME} >& /dev/null && \
-        nmcli connection add type ethernet con-name ${ETHNAME} ifname ${ETHNAME} ipv4.method manual ipv4.address "${IP}/${PREFIX}" ipv4.gateway "${GATEWAY}" ipv4.dns "${PRIMARY_DNS},${BACKUP_DNS}" autoconnect yes >& /dev/null && \
-        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2} && nmcli connection delete ${ETHNAME2} >& /dev/null && \
-        nmcli connection add type ethernet con-name ${ETHNAME2} ifname ${ETHNAME2} ipv4.method manual ipv4.address "${IP2}/${PREFIX2}" autoconnect yes >& /dev/null && \
-        nmcli con reload && nmcli dev up ${ETHNAME} ${ETHNAME2} >& /dev/null
+        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2}
+        cat > /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME2}
+type=ethernet
+interface-name=${ETHNAME2}
+
+[ethernet]
+
+[ipv4]
+address1=${IP2}/${PREFIX2}
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]
+EOF
+        chmod 600 /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection
     fi
+}
+
+set_network(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
+        set_network_eth0
+    else
+        set_network_eth0
+        set_network_eth1
+    fi
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
+}
+
+set_hostname(){
+    read -p "请输入主机名: " HOST
+    hostnamectl set-hostname ${HOST}
+    ${COLOR}"${OS_ID} ${OS_RELEASE} 主机名设置成功,请重新登录生效!"${END}
 }
 
 set_hostname(){
@@ -155,6 +228,10 @@ nju(){
 
 sjtu(){
     MIRROR=mirrors.sjtug.sjtu.edu.cn
+}
+
+iscas(){
+    MIRROR=mirror.iscas.ac.cn
 }
 
 set_yum(){
@@ -177,11 +254,12 @@ base_menu(){
 1)腾讯镜像源
 2)南京大学镜像源
 3)上海交通大学镜像源
-4)退出
+4)中国科学院软件研究所镜像源
+5)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-4): " NUM
+        read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
             tencent
@@ -196,10 +274,14 @@ EOF
             set_yum
             ;;
         4)
+            sjtu
+            set_yum
+            ;;
+        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
             ;;
         esac
     done
@@ -601,23 +683,23 @@ menu(){
         cat <<-EOF
 ***************************************************************
 *                   系统初始化脚本菜单                        *
-* 1.修改网卡名                13.优化SSH                      *
-* 2.设置网络(单网卡)          14.更改SSH端口号                *
-* 3.设置网络(双网卡)          15.设置系统别名                 *
-* 4.设置主机名                16.设置vimrc配置文件            *
-* 5.设置镜像仓库              17.安装邮件服务并配置邮件       *
-* 6.Minimal安装建议安装软件   18.设置PS1(请进入选择颜色)      *
-* 7.关闭防火墙                19.设置默认文本编辑器为vim      *
-* 8.禁用SELinux               20.设置history格式              *
-* 9.禁用SWAP                  21.禁用ctrl+alt+del重启系统功能 *
-* 10.设置系统时区             22.重启系统                     *
-* 11.优化资源限制参数         23.关机                         *
-* 12.优化内核参数             24.退出                         *
+* 1.修改网卡名                13.更改SSH端口号                *
+* 2.设置网络                  14.设置系统别名                 *
+* 3.设置主机名                15.设置vimrc配置文件            *
+* 4.设置镜像仓库              16.安装邮件服务并配置邮件       *
+* 5.Minimal安装建议安装软件   17.设置PS1(请进入选择颜色)      *
+* 6.关闭防火墙                18.设置默认文本编辑器为vim      *
+* 7.禁用SELinux               19.设置history格式              *
+* 8.禁用SWAP                  20.禁用ctrl+alt+del重启系统功能 *
+* 9.设置系统时区              21.重启系统                     *
+* 10.优化资源限制参数         22.关机                         *
+* 11.优化内核参数             23.退出                         *
+* 12.优化SSH                                                  *
 ***************************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-24): " choice
+        read -p "请选择相应的编号(1-23): " choice
         case ${choice} in
         1)
             set_eth
@@ -626,73 +708,70 @@ EOF
             set_network
             ;;
         3)
-            set_dual_network
-            ;;
-        4)
             set_hostname
             ;;
-        5)
+        4)
             base_menu
             ;;
-        6)
+        5)
             minimal_install
             ;;
-        7)
+        6)
             disable_firewalls
             ;;
-        8)
+        7)
             disable_selinux
             ;;
-        9)
+        8)
             set_swap
             ;;
-        10)
+        9)
             set_localtime
             ;;
-        11)
+        10)
             set_limits
             ;;
-        12)
+        11)
             set_kernel
             ;;
-        13)
+        12)
             optimization_ssh
             ;;
-        14)
+        13)
             set_ssh_port
             ;;
-        15)
+        14)
             set_alias
             ;;
-        16)
+        15)
             set_vimrc
             ;;
-        17)
+        16)
             set_mail
             ;;
-        18)
+        17)
             set_ps1
             ;;
-        19)
+        18)
             set_vim_env
             ;;
-        20)
+        19)
             set_history_env
             ;;
-        21)
+        20)
             disable_restart
             ;;
-        22)
+        21)
             reboot
             ;;
-        23)
+        22)
             shutdown -h now
             ;;
-        24)
+        23)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-24)!"${END}
+            ${COLOR}"输入错误,请输入正确的数字(1-23)!"${END}
             ;;
         esac
     done

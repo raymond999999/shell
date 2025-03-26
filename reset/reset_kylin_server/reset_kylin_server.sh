@@ -3,8 +3,8 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-02-19
-#FileName:      reset_opencloudos.sh
+#Date:          2025-03-26
+#FileName:      reset_kylin_server.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
 #               “Kylin Server v10“ operating systems.

@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、Anolis OS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（Uos Server）系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、AnolisOS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（Uos Server）系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -13,22 +13,15 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：Anolis OS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
-
-**v9_1和v9_2版本的区别：**
-
-v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
-
-| v9_1                                                         | v9_2                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 1.Rocky、Almalinux、CentOS系统修改ip地址采用nmcli命令方式；  | 1.Rocky、Almalinux、CentOS系统修改ip地址采用的是配置文件方式； |
-| 2.Rocky、Almalinux、CentOS、Ubuntu和Debian系统修改镜像仓库采用sed直接替换网址方式； | 2.Rocky、Almalinux、CentOS、Ubuntu和Debian系统修改镜像仓库采用的是配置文件方式； |
-| 3.设置系统时区采用timedatectl命令方式。                      | 3.设置系统时区采用软链接方式。                               |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v9版支持的系统：Rocky Linux 8和9、AlmaLinux 8和9、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
 
 **版本更新日志：**
 
 | 版本                     | 功能                                                         |
 | ------------------------ | ------------------------------------------------------------ |
+| v10版更新内容            | 1.为Rocky Linux 9、AlmaLinux 9、CentOS Stream 9及10添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
+|                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_v10”目录下。 |
 | Uos Server版更新的内容   | 1.添加了对统信（Uos Server）V20系统的支持；                  |
 |                          | 2.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server”目录下。 |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
@@ -42,15 +35,20 @@ v9_1和v9_2版本实现的功能都是一样的，只是实现的方式不同。
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                          | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
-| Anolis OS版更新的内容    | 1.添加了对Anolis OS 8和23系统的支持；                        |
+|                          | 4.为OpenCloudOS 9添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
+|                          | 5.由于OpenCloudOS 9对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
+| Anolis OS版更新的内容    | 1.添加了对AnolisOS 8和23系统的支持；                         |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                          | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolis_os”目录下。 |
+|                          | 4.为AnolisOS 8和23添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
+|                          | 5.由于AnolisOS 23对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                          | 4.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
+|                          | 5.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
 | v9版更新内容             | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                          | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                          | 3.添加了对Debian 11和12系统的支持；                          |

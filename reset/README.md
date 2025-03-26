@@ -31,24 +31,25 @@ Github：https://github.com/raymond999999/shell
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.修复了“设置PS1”不生效的问题；                              |
 |                          | 5.openSUSE 15系统pcre安装包名改成了pcre-tools，openssl-dever安装包名改成了libopenssl-devel； |
-|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
+|                          | 6.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
+|                          | 7.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.为OpenCloudOS 9添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
-|                          | 5.由于OpenCloudOS 9对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 5.由于OpenCloudOS 9对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
 | Anolis OS版更新的内容    | 1.添加了对AnolisOS 8和23系统的支持；                         |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.为AnolisOS 8和23添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
-|                          | 5.由于AnolisOS 23对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
+|                          | 5.由于AnolisOS 23对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
-|                          | 5.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置。 |
-|                          | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
+|                          | 5.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
+|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
 | v9版更新内容             | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                          | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                          | 3.添加了对Debian 11和12系统的支持；                          |

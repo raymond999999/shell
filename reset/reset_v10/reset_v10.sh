@@ -367,7 +367,7 @@ set_debian_network_eth0(){
         [ $? -eq 0 ] && break
     done
     sed -ri -e "s/allow-hotplug/auto/g" -e "s/dhcp/static/g" /etc/network/interfaces
-    sed -i '/static/a\address '${IP}'/'${PREFIX}'\ngateway '${GATEWAY}'\ndns-nameservers '${PRIMARY_DNS}' '${BACKUP_DNS}'' /etc/network/interfaces
+    sed -i '/static/a\address '${IP}'/'${PREFIX}'\ngateway '${GATEWAY}'\ndns-nameservers '${PRIMARY_DNS}' '${BACKUP_DNS}'\n' /etc/network/interfaces
 }
 
 set_debian_network_eth1(){

@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-26
+#Date:          2025-03-29
 #FileName:      reset_openeuler.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -20,14 +20,19 @@ os(){
 }
 
 set_eth(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-        grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
-
+        if lsblk | grep -q efi;then
+            EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
+            grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
+        else
+            grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        fi
+        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
         mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
+        sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功，10秒后，机器会自动重启!"${END}
 	    sleep 10 && shutdown -r now
     fi   

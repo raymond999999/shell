@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-26
+#Date:          2025-03-29
 #FileName:      reset_v10.sh
 #MIRROR:        https://blog.csdn.net/qq_25599925
 #Description:   The reset linux system initialization script supports 
@@ -23,13 +23,19 @@ os(){
 }
 
 set_rocky_almalinux_centos_7_8_eth(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-        grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        if lsblk | grep -q efi;then
+            EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
+            grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
+        else
+            grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        fi
+        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
         mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
+        sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
     fi   
 }
 
@@ -46,6 +52,7 @@ MACAddress=${ETHMAC}
 Name=eth0
 EOF
     mv /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection /etc/NetworkManager/system-connections/eth0.nmconnection
+    sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/NetworkManager/system-connections/eth0.nmconnection
 }
 
 set_rocky_almalinux_centos_9_10_eth1(){
@@ -82,9 +89,27 @@ set_ubuntu_debian_eth(){
         ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
-        grub-mkconfig -o /boot/grub/grub.cfg >& /dev/null
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功，请重新启动系统后才能生效!"${END}
+        if lsblk | grep -q efi;then
+            EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
+            grub-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
+        else
+            grub-mkconfig -o /boot/grub/grub.cfg >& /dev/null
+        fi
+        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+        if [ ${OS_ID} == "Ubuntu" ];then
+		    if [ ${OS_RELEASE_VERSION} == "18" ];then
+                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/01-netcfg.yaml 
+            elif [ ${OS_RELEASE_VERSION} == "20" ];then
+                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/00-installer-config.yaml
+            else
+                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
+            fi
+        else
+            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/network/interfaces
+        fi
     fi
+	${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
+    sleep 10 && shutdown -r now
 }
 
 set_eth(){
@@ -218,6 +243,7 @@ EOF
 }
 
 set_ubuntu_network_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -245,7 +271,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    eth0:
+    ${ETHNAME}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP}/${PREFIX}] 
@@ -259,27 +285,11 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    eth0:
+    ${ETHNAME}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP}/${PREFIX}] 
       gateway4: ${GATEWAY}
-      nameservers:
-        addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
-EOF
-    elif [ ${OS_RELEASE_VERSION} == "22" ];then
-        cat > /etc/netplan/00-installer-config.yaml <<-EOF
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eth0:
-      dhcp4: no
-      dhcp6: no
-      addresses: [${IP}/${PREFIX}]
-      routes:
-        - to: default
-          via: ${GATEWAY}
       nameservers:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
@@ -289,7 +299,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    eth0:
+    ${ETHNAME}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP}/${PREFIX}]
@@ -303,6 +313,7 @@ EOF
 }
 
 set_ubuntu_network_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
@@ -311,28 +322,21 @@ set_ubuntu_network_eth1(){
     read -p "请输入子网掩码位数: " PREFIX2
     if [ ${OS_RELEASE_VERSION} == "18" ];then
         cat >> /etc/netplan/01-netcfg.yaml <<-EOF
-    eth1:
+    ${ETHNAME2}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP2}/${PREFIX2}] 
 EOF
     elif [ ${OS_RELEASE_VERSION} == "20" ];then
         cat >> /etc/netplan/00-installer-config.yaml <<-EOF
-    eth1:
-      dhcp4: no
-      dhcp6: no
-      addresses: [${IP2}/${PREFIX2}] 
-EOF
-    elif [ ${OS_RELEASE_VERSION} == "22" ];then
-        cat >> /etc/netplan/00-installer-config.yaml <<-EOF
-    eth1:
+    ${ETHNAME2}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP2}/${PREFIX2}] 
 EOF
     else
         cat >> /etc/netplan/50-cloud-init.yaml <<-EOF
-    eth1:
+    ${ETHNAME2}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP2}/${PREFIX2}] 
@@ -341,7 +345,6 @@ EOF
 }
 
 set_debian_network_eth0(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -363,15 +366,12 @@ set_debian_network_eth0(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    sed -ri -e "s/allow-hotplug ${ETHNAME}/auto eth0/g" -e "s/(iface) ${ETHNAME} (inet) dhcp/\1 eth0 \2 static/g" /etc/network/interfaces
-    cat >> /etc/network/interfaces <<-EOF
-address ${IP}/${PREFIX}
-gateway ${GATEWAY}
-dns-nameservers ${PRIMARY_DNS} ${BACKUP_DNS}
-EOF
+    sed -ri -e "s/allow-hotplug/auto/g" -e "s/dhcp/static/g" /etc/network/interfaces
+    sed -i '/static/a\address '${IP}'/'${PREFIX}'\ngateway '${GATEWAY}'\ndns-nameservers '${PRIMARY_DNS}' '${BACKUP_DNS}'' /etc/network/interfaces
 }
 
 set_debian_network_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
@@ -380,8 +380,8 @@ set_debian_network_eth1(){
     read -p "请输入子网掩码位数: " PREFIX2
     cat >> /etc/network/interfaces <<-EOF
 
-auto eth1
-iface eth1 inet static
+auto ${ETHNAME2}
+iface ${ETHNAME2} inet static
 address ${IP2}/${PREFIX2}
 EOF
 }

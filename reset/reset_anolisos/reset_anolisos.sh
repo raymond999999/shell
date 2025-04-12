@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-29
+#Date:          2025-04-08
 #FileName:      reset_anolisos.sh
-#MIRROR:        https://blog.csdn.net/qq_25599925
+#MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “AnolisOS 8 and 23“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -121,8 +121,7 @@ check_ip(){
 }
 
 set_network_eth0(){
-    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`	
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`	
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -145,7 +144,6 @@ set_network_eth0(){
         [ $? -eq 0 ] && break
     done
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
-        nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME}
         cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
 NAME=${ETHNAME}
 DEVICE=${ETHNAME}
@@ -165,25 +163,16 @@ id=${ETHNAME}
 type=ethernet
 interface-name=${ETHNAME}
 
-[ethernet]
-
 [ipv4]
 address1=${IP}/${PREFIX},${GATEWAY}
 dns=${PRIMARY_DNS};${BACKUP_DNS};
 method=manual
-
-[ipv6]
-addr-gen-mode=default
-method=auto
-
-[proxy]
 EOF
     fi
 }
 
 set_network_eth1(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    CONNECTION_NAME2=`nmcli dev | awk 'NR==3{print $4,$5,$6}'`
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
@@ -201,24 +190,15 @@ IPADDR=${IP2}
 PREFIX=${PREFIX2}
 EOF
     else
-        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2}
         cat > /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection <<-EOF
 [connection]
 id=${ETHNAME2}
 type=ethernet
 interface-name=${ETHNAME2}
 
-[ethernet]
-
 [ipv4]
 address1=${IP2}/${PREFIX2}
 method=manual
-
-[ipv6]
-addr-gen-mode=default
-method=auto
-
-[proxy]
 EOF
         chmod 600 /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection
     fi

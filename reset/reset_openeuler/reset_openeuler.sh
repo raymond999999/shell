@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-29
+#Date:          2025-04-08
 #FileName:      reset_openeuler.sh
-#MIRROR:        https://blog.csdn.net/qq_25599925
+#MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “openEuler 22.03 and 24.03“ operating systems.
 #Copyright (C): 2025 All rights reserved

@@ -23,40 +23,42 @@ Github：https://github.com/raymond999999/shell
 |                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 3.在UEFI引导系统中，通过修改GRUB配置文件来更改网卡名时，需注意“grub.cfg”文件的位置已发生改变，已添加了相关功能以适应这一变化； |
 |                          | 4.优化了Ubuntu和Debian系统更改IP地址的操作方法；             |
-|                          | 5.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_v10”目录下。 |
+|                          | 5.修复了Ubuntu 22.04 IP地址修改完，系统重启后IP被重置问题；  |
+|                          | 6.[reset_v10版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_v10)。 |
 | Uos Server版更新的内容   | 1.添加了对统信（Uos Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
-|                          | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server”目录下。 |
+|                          | 3.[reset_uos_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server)。 |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
-|                          | 3.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server”目录下。 |
+|                          | 3.[reset_kylin_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server)。 |
 | openSUSE版更新的内容     | 1.添加了对openSUSE 15系统的支持；                            |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.修复了“设置PS1”不生效的问题；                              |
 |                          | 5.openSUSE 15系统pcre安装包名改成了pcre-tools，openssl-dever安装包名改成了libopenssl-devel； |
 |                          | 6.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
-|                          | 7.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse”目录下。 |
+|                          | 7.修复了设置网络时DNS设置不生效的问题；                      |
+|                          | 8.[reset_opensuse版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse)。 |
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.为OpenCloudOS 9添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
 |                          | 5.由于OpenCloudOS 9对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 6.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
-|                          | 7.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos”目录下。 |
+|                          | 7.[reset_opencloudos版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos)。 |
 | AnolisOS版更新的内容     | 1.添加了对AnolisOS 8和23系统的支持；                         |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.为AnolisOS 8和23添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
 |                          | 5.由于AnolisOS 23对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 6.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
-|                          | 7.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos”目录下。 |
+|                          | 7.[reset_anolisos版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos)。 |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 5.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
-|                          | 6.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler”目录下。 |
+|                          | 6.[reset_openeuler版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler)。 |
 | v9版更新内容             | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                          | 2.添加了对Ubuntu 24.04系统的支持；（Ubuntu 24.04的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                          | 3.添加了对Debian 11和12系统的支持；                          |
@@ -64,7 +66,7 @@ Github：https://github.com/raymond999999/shell
 |                          | 5.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 6.添加了对CentOS Stream 10系统的支持，修复了“禁用SWAP”不生效的问题，CentOS Stream 10系统pcre安装包名改成了pcre2，pcre-devel安装包名改成了pcre2-devel; |
 |                          | 7.修改了某些bug。                                            |
-|                          | 8.脚本地址在“https://gitee.com/raymond9/shell/tree/main/reset/v9”目录下。 |
+|                          | 8.[reset_v9版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/v9)。 |
 | v8版更新内容             | 1.添加了对AlmaLinux 8和9系统的支持；                         |
 |                          | 2.添加Ubuntu卸载snap的功能；                                 |
 |                          | 3.修改了某些bug。                                            |

@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-29
+#Date:          2025-04-10
 #FileName:      reset_v10.sh
-#MIRROR:        https://blog.csdn.net/qq_25599925
+#MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
@@ -101,6 +101,12 @@ set_ubuntu_debian_eth(){
                 sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/01-netcfg.yaml 
             elif [ ${OS_RELEASE_VERSION} == "20" ];then
                 sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/00-installer-config.yaml
+            elif [ ${OS_RELEASE_VERSION} == "22" ];then
+                touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+                cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
+network: {config: disabled}
+EOF
+                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
             else
                 sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
             fi
@@ -139,7 +145,6 @@ check_ip(){
 
 set_rocky_almalinux_centos_network_eth0(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-    CONNECTION_NAME=`nmcli dev | awk 'NR==2{print $4,$5,$6}'`	
     while true; do
         read -p "请输入IP地址: " IP
         check_ip ${IP}
@@ -162,7 +167,6 @@ set_rocky_almalinux_centos_network_eth0(){
         [ $? -eq 0 ] && break
     done
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
-        nmcli connection modify "${CONNECTION_NAME}" con-name ${ETHNAME}
         cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} <<-EOF
 NAME=${ETHNAME}
 DEVICE=${ETHNAME}
@@ -182,25 +186,16 @@ id=${ETHNAME}
 type=ethernet
 interface-name=${ETHNAME}
 
-[ethernet]
-
 [ipv4]
 address1=${IP}/${PREFIX},${GATEWAY}
 dns=${PRIMARY_DNS};${BACKUP_DNS};
 method=manual
-
-[ipv6]
-addr-gen-mode=default
-method=auto
-
-[proxy]
 EOF
     fi
 }
 
 set_rocky_almalinux_centos_network_eth1(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
-    CONNECTION_NAME2=`nmcli dev | awk 'NR==3{print $4,$5,$6}'`
     while true; do
         read -p "请输入第二块网卡IP地址: " IP2
         check_ip ${IP2}
@@ -208,7 +203,6 @@ set_rocky_almalinux_centos_network_eth1(){
     done
     read -p "请输入子网掩码位数: " PREFIX2
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
-        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2}
         cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
 NAME=${ETHNAME2}
 DEVICE=${ETHNAME2}
@@ -226,17 +220,9 @@ id=${ETHNAME2}
 type=ethernet
 interface-name=${ETHNAME2}
 
-[ethernet]
-
 [ipv4]
 address1=${IP2}/${PREFIX2}
 method=manual
-
-[ipv6]
-addr-gen-mode=default
-method=auto
-
-[proxy]
 EOF
         chmod 600 /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection
     fi
@@ -294,6 +280,14 @@ network:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
     else
+        if [ ${OS_RELEASE_VERSION} == "22" ];then
+            if [ ! -f /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg ];then
+                touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+                cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
+network: {config: disabled}
+EOF
+            fi
+        fi
         cat > /etc/netplan/50-cloud-init.yaml <<-EOF
 network:
   version: 2
@@ -1150,7 +1144,7 @@ set_yum_centos_7(){
     ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
 }
 
-centos7_base_menu(){
+centos_7_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1446,11 +1440,9 @@ EOF
 set_ubuntu_apt(){
     if [ ${OS_RELEASE_VERSION} == "18" -o ${OS_RELEASE_VERSION} == "20" -o ${OS_RELEASE_VERSION} == "22" ];then
         OLD_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/ubuntu/? $(lsb_release -cs) main.*@\2@p" /etc/apt/sources.list`
-        sed -i.bak 's/'${OLD_MIRROR}'/'${MIRROR}'/g' /etc/apt/sources.list
-        if [ ${OS_RELEASE_VERSION} == "18" ];then
-	        SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/ubuntu $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
-            sed -i.bak 's/'${SECURITY_MIRROR}'/'${MIRROR}'/g' /etc/apt/sources.list
-        fi
+        sed -i.bak 's@http.*://'${OLD_MIRROR}'@https://'${MIRROR}'@g' /etc/apt/sources.list
+        SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/ubuntu.* $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
+        sed -i.bak 's@http.*://'${SECURITY_MIRROR}'@https://'${MIRROR}'@g' /etc/apt/sources.list
     else
         sed -ri "s@^(URIs: )(http.*://)(.*)(/ubuntu).?@\1https://${MIRROR}\4@g" /etc/apt/sources.list.d/ubuntu.sources
     fi
@@ -1704,18 +1696,18 @@ set_mirror_repository(){
 
 rocky_almalinux_centos_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
-    yum -y install gcc make autoconf gcc-c++ glibc glibc-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
+    yum install -y gcc make autoconf gcc-c++ glibc glibc-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
-        yum -y install pcre pcre-devel &> /dev/null
+        yum install -y pcre pcre-devel &> /dev/null
     else
-        yum -y install pcre2 pcre2-devel &> /dev/null
+        yum install -y pcre2 pcre2-devel &> /dev/null
     fi
     ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
 }
 
 ubuntu_debian_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
-    apt -y install iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev gcc openssh-server iotop unzip zip
+    apt install -y iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev gcc openssh-server iotop unzip zip
     ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
 }
 

@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-29
+#Date:          2025-04-08
 #FileName:      reset_kylin_server.sh
-#MIRROR:        https://blog.csdn.net/qq_25599925
+#MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “Kylin Server v10“ operating systems.
 #Copyright (C): 2025 All rights reserved

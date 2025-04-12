@@ -3,9 +3,9 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-03-26
+#Date:          2025-04-08
 #FileName:      reset_opensuse.sh
-#MIRROR:        https://blog.csdn.net/qq_25599925
+#MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -62,14 +62,13 @@ set_network_eth0(){
     cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
 STARTMODE='auto'
 BOOTPROTO='static'
-ZONE=public
 IPADDR='${IP}/${PREFIX}'
 EOF
     touch /etc/sysconfig/network/routes
     cat > /etc/sysconfig/network/routes  <<-EOF
 default ${GATEWAY} - -
 EOF
-    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"${PRIMARY_DNS} ${BACKUP_DNS}"/g' /etc/sysconfig/network/config
+    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"'${PRIMARY_DNS}' '${BACKUP_DNS}'"/g' /etc/sysconfig/network/config
 }
 
 set_network_eth1(){
@@ -83,7 +82,6 @@ set_network_eth1(){
     cat > /etc/sysconfig/network/ifcfg-${ETHNAME2} <<-EOF
 STARTMODE='auto'
 BOOTPROTO='static'
-ZONE=public
 IPADDR='${IP2}/${PREFIX2}'
 EOF
 }

@@ -1573,10 +1573,8 @@ EOF
 }
 
 set_localtime(){
-    if [ ${OS_ID} == "CentOS" -o ${OS_ID} == "Rocky" ];then
-        ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-    else
-        ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    if [ ${OS_ID} == "Ubuntu" ];then
         cat >> /etc/default/locale <<-EOF
 LC_TIME=en_DK.UTF-8
 EOF

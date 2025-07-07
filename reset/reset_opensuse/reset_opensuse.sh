@@ -3,7 +3,7 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-04-08
+#Date:          2025-06-10
 #FileName:      reset_opensuse.sh
 #MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -14,9 +14,15 @@ COLOR="echo -e \\033[01;31m"
 END='\033[0m'
 
 os(){
-    OS_ID=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
-    OS_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+) (.*)"$@\2@p' /etc/os-release`
-    OS_RELEASE=`sed -rn '/^VERSION_ID=/s@.*="?([0-9.]+)"?@\1@p' /etc/os-release`
+    . /etc/os-release
+    MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
+    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
+        FULL_NAME="${PRETTY_NAME}"
+    elif [ ${MAIN_NAME} == "UOS" ];then
+        FULL_NAME="${NAME}"
+    else
+        FULL_NAME="${NAME} ${VERSION_ID}"
+    fi
 }
 
 check_ip(){
@@ -94,13 +100,13 @@ set_network(){
         set_network_eth0
         set_network_eth1
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
 }
 
 set_hostname(){
     read -p "请输入主机名: " HOST
     hostnamectl set-hostname ${HOST}
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 主机名设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
 }
 
 aliyun(){
@@ -168,16 +174,16 @@ iscas(){
 }
 
 set_zypper(){
-    [ -d /etc/zypp/repos.d/backup ] || { mkdir /etc/zypp/repos.d/backup; mv /etc/zypp/repos.d/*.repo /etc/zypp/repos.d/backup; }
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/distribution/leap/$releasever/repo/oss/' mirror-oss
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/distribution/leap/$releasever/repo/non-oss/' mirror-non-oss
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/oss/' mirror-update
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/non-oss/' mirror-update-non-oss
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/sle/' mirror-sle-update
-    zypper ar -cfg 'https://'${MIRROR}'/opensuse/update/leap/$releasever/backports/' mirror-backports-update
+    OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/zypp/repos.d/repo-*.repo | head -1)
+    OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
+    if [ ${OLD_MIRROR_URL} == "opensuse" ];then
+        sed -i.bak 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'/opensuse|g' /etc/zypp/repos.d/repo-*.repo
+    else
+        sed -i -e 's|'${OLD_MIRROR}'|'${MIRROR}'|g' /etc/zypp/repos.d/repo-*.repo
+    fi
     ${COLOR}"更新镜像源中,请稍等..."${END}
     zypper clean &> /dev/null && zypper refresh &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} zypper源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，zypper源设置完成！"${END}
 }
 
 base_menu(){
@@ -274,42 +280,42 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-17)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
             ;;
         esac
     done
 }
 
 minimal_install(){
-    ${COLOR}'开始安装“建议安装软件包”,请稍等......'${END}
+    ${COLOR}'开始安装“建议安装软件包”，请稍等......'${END}
     zypper addrepo https://download.opensuse.org/repositories/home:psi-jack/15.6/home:psi-jack.repo &> /dev/null
     zypper --no-gpg-checks refresh &> /dev/null
     zypper install -y gcc make autoconf gcc-c++ glibc-devel pcre-tools pcre-devel libopenssl-devel systemd-devel zlib-devel lrzsz tree tmux tcpdump iotop bc &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 建议安装软件包已安装完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，建议安装软件包已安装完成！"${END}
 }
 
 disable_firewalls(){
-    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} Firewall防火墙已关闭!"${END}; } || ${COLOR}"${OS_ID} ${OS_RELEASE} iptables防火墙已关闭!"${END}
+    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，Firewall防火墙已关闭！"${END}; } || ${COLOR}"${FULL_NAME}操作系统，iptables防火墙已关闭!"${END}
 }
 
 disable_apparmor(){
-    systemctl disable --now apparmor &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} AppArmor已禁用!"${END}
+    systemctl disable --now apparmor &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，AppArmor已禁用！"${END}
 }
 
 set_swap(){
     if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，swap已被禁用，不用设置！"${END}
     else
         sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
         swapoff -a
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap已设置成功,请重启系统后生效!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
     fi
 }
 
 set_localtime(){
     timedatectl set-timezone Asia/Shanghai
     echo 'Asia/Shanghai' >/etc/timezone
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统时区已设置成功,请重启系统后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
 }
 
 set_limits(){
@@ -325,7 +331,7 @@ root     hard   memlock  32000
 root     soft   msgqueue 8192000
 root     hard   msgqueue 8192000
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 优化资源限制参数成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，优化资源限制参数成功！"${END}
 }
 
 set_kernel(){
@@ -422,13 +428,13 @@ net.ipv4.tcp_tw_recycle = 0
 EOF
     fi
     sysctl -p &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 优化内核参数成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，优化内核参数成功！"${END}
 }
 
 optimization_ssh(){
     sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     systemctl restart sshd
-    ${COLOR}"${OS_ID} ${OS_RELEASE} SSH已优化完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，SSH已优化完成！"${END}
 }
 
 set_ssh_port(){
@@ -437,7 +443,7 @@ set_ssh_port(){
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
     systemctl restart sshd
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 更改SSH端口号已完成,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
 
 set_base_alias(){
@@ -464,7 +470,7 @@ EOF
 alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统别名已设置成功,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_alias(){
@@ -505,12 +511,12 @@ func SetTitle()
 endfunc
 autocmd BufNewFile * normal G
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} vimrc设置完成,请重新系统启动才能生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
 }
 
 set_mail(){                                                                                                 
-    rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务,请稍等..."${END};zypper install -y postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
-    rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务,请稍等..."${END};zypper install -y mailx &> /dev/null; }
+    rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务，请稍等......"${END};zypper install -y postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
+    rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务，请稍等......"${END};zypper install -y mailx &> /dev/null; }
     read -p "请输入邮箱地址: " MAIL
     read -p "请输入邮箱授权码: " AUTH
     SMTP=`echo ${MAIL} |awk -F"@" '{print $2}'`
@@ -522,7 +528,7 @@ set smtp-auth-password=${AUTH}
 set smtp-auth=login
 set ssl-verify=ignore
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 邮件设置完成,请重新登录后才能生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
 }
 
 red(){
@@ -567,7 +573,7 @@ set_ps1_env(){
 }
 
 set_ps1(){
-    TIPS="${COLOR}${OS_ID} ${OS_RELEASE} PS1设置成功,请重新登录生效!${END}"
+    TIPS="${COLOR}${FULL_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -623,7 +629,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-8)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-8)！"${END}
             ;;
         esac
     done
@@ -640,7 +646,7 @@ set_vim_env(){
     else
         set_vim
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 默认文本编辑器设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
 }
 
 set_history(){
@@ -654,7 +660,7 @@ set_history_env(){
     else
         set_history
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} history格式设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
 }
 
 disable_restart(){
@@ -663,7 +669,7 @@ disable_restart(){
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
 menu(){
@@ -756,7 +762,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-22)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-22)！"${END}
             ;;
         esac
     done
@@ -764,10 +770,10 @@ EOF
 
 main(){
     os
-    if [ ${OS_ID} == "openSUSE" ];then
+    if [ ${MAIN_NAME} == "openSUSE" ];then
         menu
     else
-        ${COLOR}"此脚本不支持${OS_ID} ${OS_RELEASE} 系统!"${END}
+        ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
     fi
 }
 

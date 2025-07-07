@@ -3,11 +3,11 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-04-10
+#Date:          2025-06-10
 #FileName:      reset_v10.sh
 #MIRROR:        https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “Rocky Linux 8 and 9, Almalinux 8 and 9, CentOS 7, 
+#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
 #               Debian 11 and 12“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -16,27 +16,29 @@ COLOR="echo -e \\033[01;31m"
 END='\033[0m'
 
 os(){
-    OS_ID=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
-    OS_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+) (.*)"$@\2@p' /etc/os-release`
-    OS_RELEASE=`sed -rn '/^VERSION_ID=/s@.*="?([0-9.]+)"?@\1@p' /etc/os-release`
-    OS_RELEASE_VERSION=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    . /etc/os-release
+    MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
+    MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
+        FULL_NAME="${PRETTY_NAME}"
+    elif [ ${MAIN_NAME} == "UOS" ];then
+        FULL_NAME="${NAME}"
+    else
+        FULL_NAME="${NAME} ${VERSION_ID}"
+    fi
 }
 
 set_rocky_almalinux_centos_7_8_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
+    sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
+    if lsblk | grep -q efi;then
+        EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
+        grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
     else
-        sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-        if lsblk | grep -q efi;then
-            EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
-            grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
-        else
-            grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
-        fi
-        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-        mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
-        sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
-    fi   
+        grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+    fi
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
+    sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
 }
 
 set_rocky_almalinux_centos_9_10_eth0(){
@@ -69,24 +71,40 @@ EOF
 }
 
 set_rocky_almalinux_centos_eth(){
-    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
-        set_rocky_almalinux_centos_7_8_eth
+    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
+        if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
+            ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+        else
+            set_rocky_almalinux_centos_7_8_eth
+	        ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+            sleep 10 && shutdown -r now
+        fi
     else
         IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
         if [ ${IP_NUM} == "2" ];then
-            set_rocky_almalinux_centos_9_10_eth0
+            if [ -f /etc/systemd/network/70-eth0.link ];then
+                ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+            else
+                set_rocky_almalinux_centos_9_10_eth0
+	            ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+                sleep 10 && shutdown -r now
+            fi
         else
-            set_rocky_almalinux_centos_9_10_eth0
-            set_rocky_almalinux_centos_9_10_eth1
+            if [ -f /etc/systemd/network/70-eth0.link -a -f /etc/systemd/network/70-eth1.link ];then
+                ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+            else
+                set_rocky_almalinux_centos_9_10_eth0
+                set_rocky_almalinux_centos_9_10_eth1
+	            ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+                sleep 10 && shutdown -r now
+            fi
         fi
     fi
-	${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
-    sleep 10 && shutdown -r now
 }
 
 set_ubuntu_debian_eth(){
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名配置文件已修改,不用修改!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q efi;then
@@ -96,12 +114,12 @@ set_ubuntu_debian_eth(){
             grub-mkconfig -o /boot/grub/grub.cfg >& /dev/null
         fi
         ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-        if [ ${OS_ID} == "Ubuntu" ];then
-		    if [ ${OS_RELEASE_VERSION} == "18" ];then
+        if [ ${MAIN_NAME} == "Ubuntu" ];then
+		    if [ ${MAIN_VERSION_ID} == "18" ];then
                 sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/01-netcfg.yaml 
-            elif [ ${OS_RELEASE_VERSION} == "20" ];then
+            elif [ ${MAIN_VERSION_ID} == "20" ];then
                 sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/00-installer-config.yaml
-            elif [ ${OS_RELEASE_VERSION} == "22" ];then
+            elif [ ${MAIN_VERSION_ID} == "22" ];then
                 touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
                 cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
 network: {config: disabled}
@@ -113,13 +131,13 @@ EOF
         else
             sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/network/interfaces
         fi
+	    ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
+        sleep 10 && shutdown -r now
     fi
-	${COLOR}"${OS_ID} ${OS_RELEASE} 网卡名已修改成功,10秒后,机器会自动重启!"${END}
-    sleep 10 && shutdown -r now
 }
 
 set_eth(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         set_rocky_almalinux_centos_eth
     else
         set_ubuntu_debian_eth
@@ -131,7 +149,7 @@ check_ip(){
     VALID_CHECK=$(echo ${IP}|awk -F. '$1<=255&&$2<=255&&$3<=255&&$4<=255{print "yes"}')
     if echo ${IP}|grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" >/dev/null; then
         if [ ${VALID_CHECK} == "yes" ]; then
-            echo "IP ${IP}  available!"
+            echo "IP ${IP} available!"
             return 0
         else
             echo "IP ${IP} not available!"
@@ -166,7 +184,7 @@ set_rocky_almalinux_centos_network_eth0(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
         cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} <<-EOF
 NAME=${ETHNAME}
 DEVICE=${ETHNAME}
@@ -202,7 +220,7 @@ set_rocky_almalinux_centos_network_eth1(){
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
         cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
 NAME=${ETHNAME2}
 DEVICE=${ETHNAME2}
@@ -251,7 +269,7 @@ set_ubuntu_network_eth0(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    if [ ${OS_RELEASE_VERSION} == "18" ];then
+    if [ ${MAIN_VERSION_ID} == "18" ];then
         cat > /etc/netplan/01-netcfg.yaml <<-EOF
 network:
   version: 2
@@ -265,7 +283,7 @@ network:
       nameservers:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
-    elif [ ${OS_RELEASE_VERSION} == "20" ];then
+    elif [ ${MAIN_VERSION_ID} == "20" ];then
         cat > /etc/netplan/00-installer-config.yaml <<-EOF
 network:
   version: 2
@@ -280,7 +298,7 @@ network:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
     else
-        if [ ${OS_RELEASE_VERSION} == "22" ];then
+        if [ ${MAIN_VERSION_ID} == "22" ];then
             if [ ! -f /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg ];then
                 touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
                 cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
@@ -314,14 +332,14 @@ set_ubuntu_network_eth1(){
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    if [ ${OS_RELEASE_VERSION} == "18" ];then
+    if [ ${MAIN_VERSION_ID} == "18" ];then
         cat >> /etc/netplan/01-netcfg.yaml <<-EOF
     ${ETHNAME2}:
       dhcp4: no
       dhcp6: no
       addresses: [${IP2}/${PREFIX2}] 
 EOF
-    elif [ ${OS_RELEASE_VERSION} == "20" ];then
+    elif [ ${MAIN_VERSION_ID} == "20" ];then
         cat >> /etc/netplan/00-installer-config.yaml <<-EOF
     ${ETHNAME2}:
       dhcp4: no
@@ -382,14 +400,14 @@ EOF
 
 set_network(){
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         if [ ${IP_NUM} == "2" ];then
             set_rocky_almalinux_centos_network_eth0
         else
             set_rocky_almalinux_centos_network_eth0
             set_rocky_almalinux_centos_network_eth1
         fi
-    elif [ ${OS_ID} == "Ubuntu" ];then
+    elif [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${IP_NUM} == "2" ];then
             set_ubuntu_network_eth0
         else
@@ -404,13 +422,13 @@ set_network(){
             set_debian_network_eth1
         fi
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 网络已设置成功,请重新启动系统后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
 }
 
 set_hostname(){
     read -p "请输入主机名: " HOST
     hostnamectl set-hostname ${HOST}
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 主机名设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
 }
 
 aliyun(){
@@ -489,7 +507,7 @@ iscas(){
     MIRROR=mirror.iscas.ac.cn
 }
 
-set_yum_rocky_8_9(){
+set_yum_rocky_8_9_10(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
     OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
@@ -524,12 +542,12 @@ set_yum_rocky_8_9(){
             sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/rocky|baseurl=https://'${MIRROR}'/rocky|g' /etc/yum.repos.d/[Rr]ocky*.repo
         fi
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
-rocky_8_9_base_menu(){
+rocky_8_9_10_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -554,89 +572,89 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         2)
             tencent
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         3)
             netease
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         4)
             sohu
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         5)
             nju
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         6)
             ustc
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         7)
             sjtu
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         8)
             xjtu
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         9)
             pku
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         10)
             zju
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         11)
             lzu
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         12)
             volces
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         13)
             iscas
-            set_yum_rocky_8_9
+            set_yum_rocky_8_9_10
             ;;
         14)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-14)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-14)！"${END}
             ;;
         esac
     done
 }
 
-set_devel_rocky_9(){
+set_devel_rocky_9_10(){
     dnf config-manager --set-enabled devel
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，devel仓库镜像源设置完成！"${END}
 }
 
 set_powertools_rocky_almalinux_centos_8(){
     dnf config-manager --set-enabled powertools
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} powertools源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，PowerTools仓库镜像源设置完成！"${END}
 }
 
-set_yum_almalinux_8_9(){
+set_yum_almalinux_8_9_10(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/almalinux*.repo | head -1)
     sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^# baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/almalinux*.repo
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
-almalinux_8_9_base_menu(){
+almalinux_8_9_10_base_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -658,55 +676,55 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         2)
             tencent
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         3)
             nju
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         4)
             sjtu
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         5)
             pku
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         6)
             zju
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         7)
             lzu
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         8)
             cqupt
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         9)
             volces
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         10)
             iscas
-            set_yum_almalinux_8_9
+            set_yum_almalinux_8_9_10
             ;;
         11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-11)！"${END}
             ;;
         esac
     done
 }
 
-set_devel_almalinux_9(){
+set_devel_almalinux_9_10(){
     cat > /etc/yum.repos.d/devel.repo <<-EOF
 [devel]
 name=devel
@@ -714,13 +732,13 @@ baseurl=https://${MIRROR}/almalinux/\$releasever/devel/\$basearch/os
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
 EOF
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null
     dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} devel源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，devel仓库镜像源设置完成！"${END}
 }
 
-almalinux_9_devel_menu(){
+almalinux_9_10_devel_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -742,77 +760,84 @@ EOF
         case ${NUM} in
         1)
             aliyun
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         2)
             tencent
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         3)
             nju
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         4)
             sjtu
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         5)
             pku
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         6)
             zju
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         7)
             lzu
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         8)
             cqupt
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         9)
             volces
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         10)
             iscas
-            set_devel_almalinux_9
+            set_devel_almalinux_9_10
             ;;
         11)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-11)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-11)！"${END}
             ;;
         esac
     done
 }
 
+set_crb_almalinux_centos_9_10(){
+    dnf config-manager --set-enabled crb
+    ${COLOR}"更新镜像源中，请稍等......"${END}
+    dnf clean all &> /dev/null && dnf makecache &> /dev/null
+    ${COLOR}"${FULL_NAME}操作系统，crb仓库镜像源设置完成！"${END}
+}
+
 set_yum_centos_stream_9_10_perl(){
-    ${COLOR}"由于${OS_ID} Stream ${OS_RELEASE}系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的${OS_ID} Stream ${OS_RELEASE}镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
+    ${COLOR}"由于${FULL_NAME}操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的${FULL_NAME}操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
     PERL_FILE=update_mirror.pl
     if [ ! -e ${PERL_FILE} ];then
-        ${COLOR}"缺少${PERL_FILE}文件"${END}
+        ${COLOR}"缺少${PERL_FILE}文件！"${END}
         exit
     else
         ${COLOR}"${PERL_FILE}文件已准备好，继续后续配置！"${END}       
     fi
     rpm -q perl &> /dev/null || { ${COLOR}"安装perl工具,请稍等..."${END};yum -y install perl &> /dev/null; }
     perl ./update_mirror.pl /etc/yum.repos.d/centos*.repo
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 set_yum_centos_stream_9_10(){
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever-stream/.*/$@\1@p' /etc/yum.repos.d/centos*.repo | head -1)
     sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/centos*.repo
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_stream_9_10_base_menu(){
@@ -884,17 +909,10 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
             ;;
         esac
     done
-}
-
-set_crb_almalinux_centos_9(){
-    dnf config-manager --set-enabled crb
-    ${COLOR}"更新镜像源中,请稍等..."${END}
-    dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} crb源设置完成!"${END}
 }
 
 set_yum_centos_stream_8(){
@@ -905,9 +923,9 @@ set_yum_centos_stream_8(){
     else
         sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/CentOS-*.repo
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中,请稍等..。。。."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_stream_8_base_menu(){
@@ -979,7 +997,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
             ;;
         esac
     done
@@ -1021,14 +1039,14 @@ set_epel_rocky_almalinux_centos_8_9_10(){
             sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/epel|baseurl=https://'${MIRROR}'/epel|g' /etc/yum.repos.d/epel*.repo
         fi
     fi
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "CentOS" ];then
-        if [ ${OS_RELEASE_VERSION} == "9" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "CentOS" ];then
+        if [ ${MAIN_VERSION_ID} == "9" ];then
             dnf config-manager --set-disabled epel-cisco-openh264
         fi
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，EPEL镜像源设置完成！"${END}
 }
 
 rocky_almalinux_centos_8_9_10_epel_menu(){
@@ -1125,7 +1143,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-17)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
             ;;
         esac
     done
@@ -1139,9 +1157,9 @@ set_yum_centos_7(){
     else
         sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/CentOS-*.repo
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     yum clean all &> /dev/null && yum makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} YUM源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_7_base_menu(){
@@ -1213,7 +1231,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-12)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
             ;;
         esac
     done
@@ -1241,9 +1259,9 @@ set_epel_centos_7(){
             sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/pub/archive/epel|baseurl=https://'${MIRROR}'/pub/archive/epel|g' /etc/yum.repos.d/epel*.repo
         fi
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} EPEL源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，EPEL镜像源设置完成！"${END}
 }
 
 centos_7_epel_menu(){
@@ -1275,7 +1293,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-4)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-4)！"${END}
             ;;
         esac
     done
@@ -1287,7 +1305,7 @@ rocky_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)启用Rocky 9 devel仓库
+3)启用Rocky 9和10 devel仓库
 4)启用Rocky 8 PowerTools仓库
 5)退出
 EOF
@@ -1296,30 +1314,30 @@ EOF
         read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
-            rocky_8_9_base_menu
+            rocky_8_9_10_base_menu
             ;;
         2)
             rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
-            if [ ${OS_RELEASE_VERSION} == "9" ];then
-                set_devel_rocky_9
+            if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
+                set_devel_rocky_9_10
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有devel源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有devel仓库，不用设置！"${END}
             fi
             ;;
         4)
-            if [ ${OS_RELEASE_VERSION} == "8" ];then
+            if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
             fi
             ;;
         5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-5)！"${END}
             ;;
         esac
     done
@@ -1331,8 +1349,8 @@ almalinux_menu(){
         cat <<-EOF
 1)base仓库
 2)epel仓库
-3)启用AlmaLinux 9 crb仓库
-4)添加AlmaLinux 9 devel仓库
+3)启用AlmaLinux 9和10 crb仓库
+4)添加AlmaLinux 9和10 devel仓库
 5)启用AlmaLinux 8 PowerTools仓库
 6)退出
 EOF
@@ -1341,37 +1359,37 @@ EOF
         read -p "请输入镜像源编号(1-6): " NUM
         case ${NUM} in
         1)
-            almalinux_8_9_base_menu
+            almalinux_8_9_10_base_menu
             ;;
         2)
             rocky_almalinux_centos_8_9_10_epel_menu
             ;;
         3)
-            if [ ${OS_RELEASE_VERSION} == "9" ];then
-                set_crb_almalinux_centos_9
+            if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
+                set_crb_almalinux_centos_9_10
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有crb仓库，不用设置！"${END}
             fi
             ;;
         4)
-            if [ ${OS_RELEASE_VERSION} == "9" ];then
-                almalinux_9_devel_menu
+            if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
+                almalinux_9_10_devel_menu
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有devel源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有devel仓库，不用设置！"${END}
             fi
             ;;
         5)
-            if [ ${OS_RELEASE_VERSION} == "8" ];then
+            if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置!"${END}
             fi
             ;;
         6)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-6)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-6)！"${END}
             ;;
         esac
     done
@@ -1392,63 +1410,60 @@ EOF
         read -p "请输入镜像源编号(1-5): " NUM
         case ${NUM} in
         1)
-            if [ ${OS_NAME} == "Stream" ];then
-                if [ ${OS_RELEASE_VERSION} == "8" ];then
-                    centos_stream_8_base_menu
-                else
-                    if grep -Eqi "^baseurl" /etc/yum.repos.d/centos*.repo;then
-                        centos_stream_9_10_base_menu
-                    else
-                        set_yum_centos_stream_9_10_perl
-                    fi
-                fi
-            else
+            if [ ${MAIN_VERSION_ID} == "7" ];then
                 centos_7_base_menu
+            elif [ ${MAIN_VERSION_ID} == "8" ];then
+                centos_stream_8_base_menu
+            else
+                if grep -Eqi "^baseurl" /etc/yum.repos.d/centos*.repo;then
+                    centos_stream_9_10_base_menu
+                else
+                    set_yum_centos_stream_9_10_perl
+                fi
             fi
             ;;
         2)
-            if [ ${OS_RELEASE_VERSION} == "7" ];then
+            if [ ${MAIN_VERSION_ID} == "7" ];then
                 centos_7_epel_menu
             else
                 rocky_almalinux_centos_8_9_10_epel_menu
             fi
             ;;
         3)
-            if [ ${OS_RELEASE_VERSION} == "9" -o ${OS_RELEASE_VERSION} == "10" ];then
-                set_crb_almalinux_centos_9
+            if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
+                set_crb_almalinux_centos_9_10
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有crb源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有crb仓库，不用设置！"${END}
             fi
             ;;
         4)
-            if [ ${OS_RELEASE_VERSION} == "8" ];then
+            if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${OS_ID} ${OS_RELEASE} 没有powertools源，不用设置!"${END}
+                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
             fi
             ;;
         5)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-5)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-5)！"${END}
             ;;
         esac
     done
 }
 
 set_ubuntu_apt(){
-    if [ ${OS_RELEASE_VERSION} == "18" -o ${OS_RELEASE_VERSION} == "20" -o ${OS_RELEASE_VERSION} == "22" ];then
+    if [ ${MAIN_VERSION_ID} == "18" -o ${MAIN_VERSION_ID} == "20" -o ${MAIN_VERSION_ID} == "22" ];then
         OLD_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/ubuntu/? $(lsb_release -cs) main.*@\2@p" /etc/apt/sources.list`
-        sed -i.bak 's@http.*://'${OLD_MIRROR}'@https://'${MIRROR}'@g' /etc/apt/sources.list
         SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/ubuntu.* $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
-        sed -i.bak 's@http.*://'${SECURITY_MIRROR}'@https://'${MIRROR}'@g' /etc/apt/sources.list
+        sed -i.bak -e 's@http.*://'${OLD_MIRROR}'@https://'${MIRROR}'@g' -e 's@http.*://'${SECURITY_MIRROR}'@https://'${MIRROR}'@g' /etc/apt/sources.list
     else
         sed -ri "s@^(URIs: )(http.*://)(.*)(/ubuntu).?@\1https://${MIRROR}\4@g" /etc/apt/sources.list.d/ubuntu.sources
     fi
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     apt update &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} APT源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 apt_menu(){
@@ -1555,7 +1570,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-19)！"${END}
             ;;
         esac
     done
@@ -1565,9 +1580,9 @@ set_debian_apt(){
     OLD_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian/? $(lsb_release -cs) main.*@\2@p" /etc/apt/sources.list`
     SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian-security $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
     sed -ri.bak -e 's/'${OLD_MIRROR}'/'${MIRROR}'/g' -e 's/'${SECURITY_MIRROR}'/'${MIRROR}'/g' -e 's/^(deb cdrom.*)/#\1/g' /etc/apt/sources.list
-    ${COLOR}"更新镜像源中,请稍等..."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     apt update &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} APT源设置完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 debian_menu(){
@@ -1674,20 +1689,20 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-19)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-19)！"${END}
             ;;
         esac
     done
 }
 
 set_mirror_repository(){
-    if [ ${OS_ID} == "Rocky" ];then
+    if [ ${MAIN_NAME} == "Rocky" ];then
         rocky_menu
-    elif [ ${OS_ID} == "AlmaLinux" ];then
+    elif [ ${MAIN_NAME} == "AlmaLinux" ];then
         almalinux_menu
-    elif [ ${OS_ID} == "CentOS" ];then
+    elif [ ${MAIN_NAME} == "CentOS" ];then
         centos_menu
-    elif [ ${OS_ID} == "Ubuntu" ];then
+    elif [ ${MAIN_NAME} == "Ubuntu" ];then
         apt_menu
     else
         debian_menu
@@ -1695,24 +1710,24 @@ set_mirror_repository(){
 }
 
 rocky_almalinux_centos_minimal_install(){
-    ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
+    ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
     yum install -y gcc make autoconf gcc-c++ glibc glibc-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
-    if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" -o ${OS_RELEASE_VERSION} == "9" ];then
+    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" -o ${MAIN_VERSION_ID} == "9" ];then
         yum install -y pcre pcre-devel &> /dev/null
     else
         yum install -y pcre2 pcre2-devel &> /dev/null
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 ubuntu_debian_minimal_install(){
-    ${COLOR}'开始安装“Minimal安装建议安装软件包”,请稍等......'${END}
+    ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
     apt install -y iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev gcc openssh-server iotop unzip zip
-    ${COLOR}"${OS_ID} ${OS_RELEASE} Minimal安装建议安装软件包已安装完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 minimal_install(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         rocky_almalinux_centos_minimal_install
     else
         ubuntu_debian_minimal_install
@@ -1720,52 +1735,52 @@ minimal_install(){
 }
 
 disable_firewalls(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} Firewall防火墙已关闭!"${END}; } || ${COLOR}"${OS_ID} ${OS_RELEASE} iptables防火墙已关闭!"${END}
-    elif [ ${OS_ID} == "Ubuntu" ];then
-        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${OS_ID} ${OS_RELEASE} ufw防火墙已关闭!"${END}; } || ${COLOR}"${OS_ID} ${OS_RELEASE}  没有ufw防火墙服务,不用关闭！"${END}
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
+        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${FULL_NAME}操作系统，iptables防火墙已关闭!"${END}
+    elif [ ${MAIN_NAME} == "Ubuntu" ];then
+        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，ufw防火墙已关闭!"${END}; } || ${COLOR}"${FULL_NAME}操作系统， 没有ufw防火墙服务,不用关闭！"${END}
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE}  没有安装防火墙服务,不用关闭！"${END}
+        ${COLOR}"${FULL_NAME}操作系统，没有安装防火墙服务，不用关闭！"${END}
     fi
 }
 
 disable_selinux(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         if [ `getenforce` == "Enforcing" ];then
             sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
             setenforce 0
-            ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已禁用,请重新启动系统后才能永久生效!"${END}
+            ${COLOR}"${FULL_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
         else
-            ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux已被禁用,不用设置!"${END}
+            ${COLOR}"${FULL_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
         fi
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} SELinux默认没有安装,不用设置!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，SELinux默认没有安装，不用设置！"${END}
     fi
 }
 
 set_swap(){
     if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${OS_ID} ${OS_RELEASE} swap已被禁用,不用设置!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，swap已被禁用，不用设置！"${END}
     else
-        if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+        if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
             sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
 	    else
             sed -ri.bak '/swap/s/(.*)(sw)(.*)/\1\2,noauto\3/g' /etc/fstab
         fi
         swapoff -a
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用swap已设置成功,请重启系统后生效!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
     fi
 }
 
 set_localtime(){
     timedatectl set-timezone Asia/Shanghai
     echo 'Asia/Shanghai' >/etc/timezone
-    if [ ${OS_ID} == "Ubuntu" ];then
+    if [ ${MAIN_NAME} == "ubuntu" ];then
         cat >> /etc/default/locale <<-EOF
 LC_TIME=en_DK.UTF-8
 EOF
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统时区已设置成功,请重启系统后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
 }
 
 set_limits(){
@@ -1781,7 +1796,7 @@ root     hard   memlock  32000
 root     soft   msgqueue 8192000
 root     hard   msgqueue 8192000
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 优化资源限制参数成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，优化资源限制参数成功！"${END}
 }
 
 set_kernel(){
@@ -1878,23 +1893,23 @@ net.ipv4.tcp_tw_recycle = 0
 EOF
     fi
     sysctl -p &> /dev/null
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 优化内核参数成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，优化内核参数成功！"${END}
 }
 
 optimization_ssh(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     else
         sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^#(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     fi
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 24 ];then
+    if [ ${MAIN_NAME} == "ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 24 ];then
             systemctl restart ssh
         fi
     else
         systemctl restart sshd
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} SSH已优化完成!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，SSH已优化完成！"${END}
 }
 
 set_ssh_port(){
@@ -1902,14 +1917,14 @@ set_ssh_port(){
     disable_firewalls
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 24 ];then
+    if [ ${MAIN_NAME} == "ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 24 ];then
             systemctl restart ssh
         fi
     else
         systemctl restart sshd
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 更改SSH端口号已完成,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
 
 set_rocky_almalinux_centos_alias(){
@@ -1917,7 +1932,7 @@ set_rocky_almalinux_centos_alias(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
     if [ ${IP_NUM} == "2" ];then
-        if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
             cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
 alias cdrepo="cd /etc/yum.repos.d"
@@ -1931,7 +1946,7 @@ alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
 EOF
         fi
     else	
-        if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
+        if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
             cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
 alias cdrepo="cd /etc/yum.repos.d"
@@ -1953,7 +1968,7 @@ EOF
 alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统别名已设置成功,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_ubuntu_alias(){
@@ -1961,7 +1976,7 @@ set_ubuntu_alias(){
 alias cdnet="cd /etc/netplan"
 alias cdapt="cd /etc/apt"
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统别名已设置成功,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_debian_alias(){
@@ -1969,18 +1984,18 @@ set_debian_alias(){
 alias cdnet="cd /etc/network"
 alias cdapt="cd /etc/apt"
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 系统别名已设置成功,请重新登陆后生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_alias(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         if grep -Eqi "(.*cdnet|.*cdrepo|.*vie0|.*vie1|.*scandisk)" ~/.bashrc;then
             sed -i -e '/.*cdnet/d'  -e '/.*cdrepo/d' -e '/.*vie0/d' -e '/.*vie1/d' -e '/.*scandisk/d' ~/.bashrc
             set_rocky_almalinux_centos_alias
         else
             set_rocky_almalinux_centos_alias
         fi
-    elif [ ${OS_ID} == "Ubuntu" ];then
+    elif [ ${MAIN_NAME} == "Ubuntu" ];then
         if grep -Eqi "(.*cdnet|.*cdapt)" ~/.bashrc;then
             sed -i -e '/.*cdnet/d' -e '/.*cdapt/d' ~/.bashrc
             set_ubuntu_alias
@@ -2026,15 +2041,15 @@ func SetTitle()
 endfunc
 autocmd BufNewFile * normal G
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} vimrc设置完成,请重新系统启动才能生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
 }
 
 set_mail(){                                                                                                 
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
-        rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务,请稍等..."${END};yum -y install postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
-        rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务,请稍等..."${END};yum -y install mailx &> /dev/null; }
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
+        rpm -q postfix &> /dev/null || { ${COLOR}"安装postfix服务，请稍等......"${END};yum -y install postfix &> /dev/null; systemctl enable --now postfix &> /dev/null; }
+        rpm -q mailx &> /dev/null || { ${COLOR}"安装mailx服务，请稍等......"${END};yum -y install mailx &> /dev/null; }
     else
-        dpkg -s mailutils &> /dev/null || { ${COLOR}"安装mailutils服务,请稍等..."${END};apt -y install mailutils; }
+        dpkg -s mailutils &> /dev/null || { ${COLOR}"安装mailutils服务，请稍等......"${END};apt -y install mailutils; }
     fi
     read -p "请输入邮箱地址: " MAIL
     read -p "请输入邮箱授权码: " AUTH
@@ -2047,7 +2062,7 @@ set smtp-auth-password=${AUTH}
 set smtp-auth=login
 set ssl-verify=ignore
 EOF
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 邮件设置完成,请重新登录后才能生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
 }
 
 red(){
@@ -2087,7 +2102,7 @@ ubuntu_debian_ps1(){
 }
 
 set_ps1_env(){
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
         if grep -Eqi "^PS1" ~/.bashrc;then
             sed -i '/^PS1/d' ~/.bashrc
             rocky_almalinux_centos_ps1
@@ -2105,7 +2120,7 @@ set_ps1_env(){
 }
 
 set_ps1(){
-    TIPS="${COLOR}${OS_ID} ${OS_RELEASE} PS1设置成功,请重新登录生效!${END}"
+    TIPS="${COLOR}${FULL_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -2161,7 +2176,7 @@ EOF
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-8)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-8)！"${END}
             ;;
         esac
     done
@@ -2178,7 +2193,7 @@ set_vim_env(){
     else
         set_vim
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 默认文本编辑器设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
 }
 
 set_history(){
@@ -2192,7 +2207,7 @@ set_history_env(){
     else
         set_history
     fi
-    ${COLOR}"${OS_ID} ${OS_RELEASE} history格式设置成功,请重新登录生效!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
 }
 
 disable_restart(){
@@ -2201,15 +2216,15 @@ disable_restart(){
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target
-    ${COLOR}"${OS_ID} ${OS_RELEASE} 禁用ctrl+alt+del重启功能设置成功!"${END}
+    ${COLOR}"${FULL_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
 set_ubuntu_debian_root_login(){
-    if [ ${OS_ID} == "Ubuntu" -o ${OS_ID} == "Debian" ];then
+    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
         read -p "请输入密码: " PASSWORD
         echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
-        if [ ${OS_ID} == "Ubuntu" ];then
-            if [ ${OS_RELEASE_VERSION} == 24 ];then
+        if [ ${NAME} == "Ubuntu" ];then
+            if [ ${MAIN_VERSION_ID} == 24 ];then
                 sudo systemctl restart ssh
 	        fi
         else
@@ -2219,32 +2234,31 @@ set_ubuntu_debian_root_login(){
 ${PASSWORD}
 ${PASSWORD}
 EOF
-        ${COLOR}"${OS_ID} ${OS_RELEASE} root用户登录已设置完成,请重新登录后生效!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 系统不可用!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
 ubuntu_remove(){
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 18 ];then
+    if [ ${MAIN_NAME}} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 18 ];then
             apt -y purge ufw lxd lxd-client lxcfs liblxc-common
         else
             apt -y purge ufw
         fi
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 无用软件包卸载完成!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，无用软件包卸载完成！"${END}
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 系统不可用!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
 ubuntu_20_22_24_remove_snap(){
     dpkg -s snapd &> /dev/null
     if [ $? -eq 1 ];then 
-        ${COLOR}"${OS_ID} ${OS_RELEASE} snap已卸载！"${END}
+        ${COLOR}"${FULL_NAME}操作系统，snap已卸载！"${END}
     else
-        systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service
-    
+        systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service  
         sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
         while [ $sum -ne 0 ];do
             for p in $(snap list | awk 'NR>=2{print $1}'); do
@@ -2252,30 +2266,27 @@ ubuntu_20_22_24_remove_snap(){
             done
             sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
         done
-        
         apt -y autoremove --purge snapd
-        
         rm -rf ~/snap && sudo rm -rf /snap && rm -rf /var/snap && rm -rf /var/lib/snapd && rm -rf /var/cache/snapd
-        
         cat > /etc/apt/preferences.d/no-snapd.pref << EOF
 Package: snapd
 Pin: release a=*
 Pin-Priority: -10
 EOF
         apt update
-        ${COLOR}"${OS_ID} ${OS_RELEASE} snap卸载完成!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，snap卸载完成！"${END}
     fi
 }
 
 ubuntu_remove_snap(){
-    if [ ${OS_ID} == "Ubuntu" ];then
-        if [ ${OS_RELEASE_VERSION} == 20 -o ${OS_RELEASE_VERSION} == 22 -o ${OS_RELEASE_VERSION} == 24 ];then
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
             ubuntu_20_22_24_remove_snap
         else
-           ${COLOR}"${OS_ID} ${OS_RELEASE} 默认没有安装snap!"${END} 
+           ${COLOR}"${FULL_NAME}操作系统，默认没有安装snap！"${END} 
         fi
     else
-        ${COLOR}"${OS_ID} ${OS_RELEASE} 系统不可用!"${END}
+        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
@@ -2374,16 +2385,16 @@ EOF
             ubuntu_remove_snap
             ;;
         24)
-            reboot
+            sudo shutdown -r now
             ;;
         25)
-            shutdown -h now
+            sudo shutdown -h now
             ;;
         26)
             break
             ;;
         *)
-            ${COLOR}"输入错误,请输入正确的数字(1-26)!"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-26)！"${END}
             ;;
         esac
     done
@@ -2391,10 +2402,10 @@ EOF
 
 main(){
     os
-    if [ ${OS_ID} == "Rocky" -o ${OS_ID} == "AlmaLinux" -o ${OS_ID} == "CentOS" -o ${OS_ID} == "Ubuntu" -o ${OS_ID} == "Debian" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
         menu
     else
-        ${COLOR}"此脚本不支持${OS_ID} ${OS_RELEASE} 系统!"${END}
+        ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
     fi
 }
 

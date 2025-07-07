@@ -3,7 +3,7 @@
 #***************************************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2023-11-15
+#Date:          2023-11-24
 #FileName:      reset_v6_2.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 7 & CentOS Stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
@@ -54,15 +54,21 @@ set_centos_alias(){
     if [ ${OS_RELEASE_VERSION} == "7" -o ${OS_RELEASE_VERSION} == "8" ];then
         cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
+alias cdrepo="cd /etc/yum.repos.d"
 alias vie0="vim /etc/sysconfig/network-scripts/ifcfg-eth0"
 alias vie1="vim /etc/sysconfig/network-scripts/ifcfg-eth1"
-alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     else
         cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/NetworkManager/system-connections"
+alias cdrepo="cd /etc/yum.repos.d"
 alias vie0="vim /etc/NetworkManager/system-connections/eth0.nmconnection"
 alias vie1="vim /etc/NetworkManager/system-connections/eth1.nmconnection"
+EOF
+    fi
+    DISK_NAME=`lsblk|awk -F" " '/disk/{printf $1}' | cut -c1-4`
+    if [ ${DISK_NAME} == "sda" ];then
+        cat >>~/.bashrc <<-EOF
 alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     fi
@@ -72,7 +78,7 @@ EOF
 set_ubuntu_alias(){
     cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/netplan"
-alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
+alias cdapt="cd /etc/apt"
 EOF
     ${COLOR}"${OS_ID} ${OS_RELEASE} 系统别名已设置成功,请重新登陆后生效!"${END}
 }

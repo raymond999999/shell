@@ -7,7 +7,7 @@
 #FileName:      reset_v4.sh
 #URL:           raymond.blog.csdn.net
 #Description:   reset for CentOS 6/7/8/stream 8/9 & Ubuntu 18.04/20.04/22.04 & Rocky 8/9
-#Copyright (C): 2021 All rights reserved
+#Copyright (C): 2022 All rights reserved
 #*********************************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -1788,6 +1788,7 @@ EOF
 
 set_localtime(){
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    echo 'Asia/Shanghai' >/etc/timezone
     if [ ${OS_ID} == "Ubuntu" ];then
         cat >> /etc/default/locale <<-EOF
 LC_TIME=en_DK.UTF-8

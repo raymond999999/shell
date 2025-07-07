@@ -143,7 +143,7 @@ Github：https://github.com/raymond999999/shell
    请选择相应的编号(1-26): 21 # 输入21，设置root用户登录
    请输入密码: 123456 # 输入密码
    [sudo] password for raymond: New password: Retype new password: passwd: password updated successfully
-   Ubuntu 24.04 root用户登录已设置完成,请重新登录后生效!
+   Ubuntu 24.04.2 LTS操作系统，root用户登录已设置完成，请重新登录后生效！
    
    *****************************************************************
    *                   系统初始化脚本菜单                          *
@@ -163,6 +163,7 @@ Github：https://github.com/raymond999999/shell
    *****************************************************************
    
    请选择相应的编号(1-26): 26 # 退出脚本
+   
    # 然后用root用户登录
    [C:\~]$ ssh root:123456@172.31.7.2
    
@@ -180,7 +181,7 @@ Github：https://github.com/raymond999999/shell
    [root@centos10 ~]# ls
    anaconda-ks.cfg  reset_v10.sh
    
-   [root@centos10 ~]# bash reset_v10.sh 
+   [root@centos10 ~]# bash reset_v10.sh
    
    *****************************************************************
    *                   系统初始化脚本菜单                          *
@@ -199,7 +200,7 @@ Github：https://github.com/raymond999999/shell
    * 13.更改SSH端口号            26.退出                           *
    *****************************************************************
    
-   请选择相应的编号(1-26): 4 # 输入4，设置镜像仓库
+   请选择相应的编号(1-26): 4  # 输入4，设置镜像仓库
    
    1)base仓库
    2)epel仓库
@@ -208,8 +209,8 @@ Github：https://github.com/raymond999999/shell
    5)退出
    
    请输入镜像源编号(1-5): 1 # 输入1，选择设置base仓库
-   由于CentOS Stream 10系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 10镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
-   缺少update_mirror.pl文件 # 这里提示“缺少update_mirror.pl文件”，上面的提示也写得很清楚，需要把这个文件也传到系统里
+   由于CentOS Stream 10操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 10操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
+   缺少update_mirror.pl文件！ # 这里提示“缺少update_mirror.pl文件”，上面的提示也写得很清楚，需要把这个文件也传到系统里
    
    [root@centos10 ~]# rz -E
    rz waiting to receive.
@@ -234,7 +235,7 @@ Github：https://github.com/raymond999999/shell
    * 12.优化SSH                  25.关机                           *
    * 13.更改SSH端口号            26.退出                           *
    *****************************************************************
-    
+   
    请选择相应的编号(1-26): 4 # 输入4，设置镜像仓库
    
    1)base仓库
@@ -244,11 +245,11 @@ Github：https://github.com/raymond999999/shell
    5)退出
    
    请输入镜像源编号(1-5): 1 # 输入1，选择设置base仓库
-   由于CentOS Stream 10系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 10镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
-   update_mirror.pl文件已准备好，继续后续配置！ # 现在这里提示“update_mirror.pl文件已准备好，继续后续配置！”。
+   由于CentOS Stream 10操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 10操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
+   update_mirror.pl文件已准备好，继续后续配置！  # 现在这里提示“update_mirror.pl文件已准备好，继续后续配置！”。
    安装perl工具,请稍等...
-   更新镜像源中,请稍等...
-   CentOS 10 YUM源设置完成!
+   更新镜像源中，请稍等......
+   CentOS Stream 10操作系统，镜像源设置完成！
    
    1)base仓库
    2)epel仓库

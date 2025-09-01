@@ -3,32 +3,29 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-06-10
+#MP:            Raymond运维
+#Date:          2025-09-01
 #FileName:      install_mysql_8.4_binary_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql binary script install supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
-#               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03, 
+#               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
 #               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10, 
-#               Uos Server v20, Ubuntu 18.04, 20.04, 22.04 and 24.04,  
-#               Debian 11 and 12, openSUSE 15“ operating systems.
+#               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
+#               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
 
-# mysql 8.4.5 glibc2.28包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.5-linux-glibc2.28-x86_64.tar.xz"
-# mysql 8.4.5 glibc2.17包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.5-linux-glibc2.17-x86_64.tar.xz"
-
-DATA_DIR=/data/mysql
-GLIBC_VERSION=2.28
-MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.4/
-MYSQL_FILE="mysql-8.4.5-linux-glibc${GLIBC_VERSION}-x86_64.tar.xz"
-
 os(){
     . /etc/os-release
     MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
-    MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    if [ ${MAIN_NAME} == "Kylin" ];then
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
+    else
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    fi
     if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
         FULL_NAME="${PRETTY_NAME}"
     elif [ ${MAIN_NAME} == "UOS" ];then
@@ -37,6 +34,20 @@ os(){
         FULL_NAME="${NAME} ${VERSION_ID}"
     fi
 }
+
+os
+DATA_DIR=/data/mysql
+
+# mysql 8.4.5 glibc2.28包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.5-linux-glibc2.28-x86_64.tar.xz"
+# mysql 8.4.5 glibc2.17包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.5-linux-glibc2.17-x86_64.tar.xz"
+
+if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
+    GLIBC_VERSION=2.17
+else
+    GLIBC_VERSION=2.28
+fi
+MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.4/
+MYSQL_FILE="mysql-8.4.5-linux-glibc${GLIBC_VERSION}-x86_64.tar.xz"
 
 check_file(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
@@ -109,7 +120,11 @@ EOF
         if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 ];then
             apt update &> /dev/null;apt install -y libaio1 libnuma1 &> /dev/null
         fi
-        if [ ${MAIN_VERSION_ID} == 12 ];then
+        if [ ${MAIN_VERSION_ID} == 13 ];then
+            apt update &> /dev/null;apt install -y libaio1t64 libnuma1 &> /dev/null
+            ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64.0.2 /usr/lib/x86_64-linux-gnu/libaio.so.1
+        fi
+        if [ ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
             apt update &> /dev/null;apt install -y libncurses6 &> /dev/null
         fi
     fi
@@ -190,9 +205,54 @@ EOF
 }
 
 main(){
-    os
     check_file
     install_mysql
 }
 
-main
+if [ ${MAIN_NAME} == "Rocky" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "AlmaLinux" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "CentOS" ];then
+    if [ ${MAIN_VERSION_ID} == 7 -o ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "openEuler" ];then
+    if [ ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Anolis" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 23 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == 'OpenCloudOS' ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Kylin" ];then
+    if [ ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_VERSION_ID} == 20 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "openSUSE" ];then
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Ubuntu" ];then
+    if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == 'Debian' ];then
+    if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
+        main
+    fi
+else
+    ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
+fi

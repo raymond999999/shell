@@ -3,22 +3,42 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-06-10
+#MP:            Raymond运维
+#Date:          2025-09-01
 #FileName:      install_mysql_8.4_source_v2.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql source script install supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
-#               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03, 
+#               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
 #               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10, 
-#               Uos Server v20, Ubuntu 18.04, 20.04, 22.04 and 24.04,  
-#               Debian 11 and 12, openSUSE 15“ operating systems.
+#               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
+#               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
+COLOR="echo -e \\033[01;31m"
+END='\033[0m'
+
+os(){
+    . /etc/os-release
+    MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
+    if [ ${MAIN_NAME} == "Kylin" ];then
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
+    else
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    fi
+    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
+        FULL_NAME="${PRETTY_NAME}"
+    elif [ ${MAIN_NAME} == "UOS" ];then
+        FULL_NAME="${NAME}"
+    else
+        FULL_NAME="${NAME} ${VERSION_ID}"
+    fi
+}
+
+os
 SRC_DIR=/usr/local/src
 INSTALL_DIR=/apps/mysql
 DATA_DIR=/data/mysql
-COLOR="echo -e \\033[01;31m"
-END='\033[0m'
 
 MYSQL_URL='https://cdn.mysql.com//Downloads/MySQL-8.4/'
 MYSQL_FILE='mysql-8.4.5.tar.gz'
@@ -37,25 +57,6 @@ MPC_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
 MPC_FILE='mpc-1.0.3.tar.gz'
 ISL_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
 ISL_FILE='isl-0.18.tar.bz2'
-
-CPUS=`lscpu |awk '/^CPU\(s\)/{print $2}'`
-
-os(){
-    . /etc/os-release
-    MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
-    if [ ${MAIN_NAME} == "Kylin" ];then
-        MAIN_VERSION_ID=`echo ${VERSION_ID} | awk -F"[=\"]" '{print $1}' | tr -d '[:alpha:]'`
-    else
-        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        FULL_NAME="${PRETTY_NAME}"
-    elif [ ${MAIN_NAME} == "UOS" ];then
-        FULL_NAME="${NAME}"
-    else
-        FULL_NAME="${NAME} ${VERSION_ID}"
-    fi
-}
 
 check_mysql_file(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
@@ -136,7 +137,7 @@ install_gcc(){
     mkdir build
     cd build
     ../configure --prefix=${GCC_INSTALL_DIR} --disable-multilib 
-    make -j ${CPUS} && make install
+    make -j $(nproc) && make install
     [ $? -eq 0 ] && ${COLOR}"gcc编译安装成功！"${END} ||  { ${COLOR}"gcc编译安装失败，退出！"${END};exit; }
 }
 
@@ -273,6 +274,11 @@ install_mysql(){
             apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config
         fi
     fi
+    if [ ${MAIN_NAME} == 'Debian' ];then
+        if [ ${MAIN_VERSION_ID} == 13 ];then
+            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config libtirpc-dev
+        fi
+    fi
     if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
         install_cmake
     fi
@@ -327,8 +333,8 @@ install_mysql(){
         -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
         -DSYSCONFDIR=/etc \
         -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
-        -DDEFAULT_CHARSET=utf8  \
-        -DDEFAULT_COLLATION=utf8_general_ci \
+        -DDEFAULT_CHARSET=utf8mb4 \
+        -DDEFAULT_COLLATION=utf8mb4_general_ci \
         -DWITH_INNOBASE_STORAGE_ENGINE=1 \
         -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
         -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
@@ -336,14 +342,29 @@ install_mysql(){
         -DMYSQL_DATADIR=${DATA_DIR}\
         -DFORCE_INSOURCE_BUILD=1 \
         -DWITH_SYSTEMD=1
+    elif [ ${MAIN_NAME} == "Debian" -a ${MAIN_VERSION_ID} == 13 ];then
+        cmake \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+        -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
+        -DSYSCONFDIR=/etc \
+        -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
+        -DDEFAULT_CHARSET=utf8mb4 \
+        -DDEFAULT_COLLATION=utf8mb4_general_ci \
+        -DWITH_INNOBASE_STORAGE_ENGINE=1 \
+        -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
+        -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+        -DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
+        -DMYSQL_DATADIR=${DATA_DIR}\
+        -DWITH_BOOST=/usr/local/src/${MYSQL_DIR}/boost/boost_1_77_0/ \
+        -DFORCE_INSOURCE_BUILD=1
     else
         cmake \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
         -DSYSCONFDIR=/etc \
         -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
-        -DDEFAULT_CHARSET=utf8  \
-        -DDEFAULT_COLLATION=utf8_general_ci \
+        -DDEFAULT_CHARSET=utf8mb4 \
+        -DDEFAULT_COLLATION=utf8mb4_general_ci \
         -DWITH_INNOBASE_STORAGE_ENGINE=1 \
         -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
         -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
@@ -352,7 +373,7 @@ install_mysql(){
         -DFORCE_INSOURCE_BUILD=1 \
         -DWITH_SYSTEMD=1
     fi
-    make -j ${CPUS} && make install
+    make -j $(nproc) && make install
     [ $? -eq 0 ] && ${COLOR}"MySQL编译安装成功！"${END} ||  { ${COLOR}"MySQL编译安装失败，退出！"${END};exit; }
     echo 'PATH='${INSTALL_DIR}'/bin:$PATH' > /etc/profile.d/mysql.sh
     . /etc/profile.d/mysql.sh
@@ -365,10 +386,8 @@ basedir=${INSTALL_DIR}
 datadir=${DATA_DIR}
 port=3306
 socket=${DATA_DIR}/mysql.sock 
+log-error=${DATA_DIR}/mysql.log
 pid-file=${DATA_DIR}/mysql.pid 
-
-[mysqld_safe]
-log-error=${DATA_DIR}/mysql.log 
 
 [client]
 port=3306
@@ -379,6 +398,23 @@ EOF
     elif [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${MAIN_VERSION_ID} == 24 ];then	
             cp ${INSTALL_DIR}/usr/lib/systemd/system/mysqld.service /lib/systemd/system/
+        fi
+    elif [ ${MAIN_NAME} == "Debian" ];then
+        if [ ${MAIN_VERSION_ID} == 13 ];then	
+            cat > /lib/systemd/system/mysqld.service  <<EOF
+[Unit]
+Description=MySQL Server
+After=network.target
+
+[Service]
+User=mysql
+Group=mysql
+ExecStart=${INSTALL_DIR}/bin/mysqld --defaults-file=/etc/my.cnf
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
         fi
     else
        cat > /lib/systemd/system//mysqld.service  <<EOF
@@ -453,16 +489,60 @@ Environment=MYSQLD_PARENT_PID=1
 PrivateTmp=false
 EOF
     fi
-    systemctl daemon-reload
-    systemctl enable --now mysqld &> /dev/null
+    systemctl daemon-reload && systemctl enable --now mysqld &> /dev/null
     [ $? -ne 0 ] && { ${COLOR}"数据库启动失败，退出！"${END};exit; }
     ${COLOR}"${FULL_NAME}操作系统，MySQL数据库安装完成！"${END}
 }
 
 main(){
-    os
     check_file
     install_mysql
 }
 
-main
+if [ ${MAIN_NAME} == "Rocky" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "AlmaLinux" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "CentOS" ];then
+    if [ ${MAIN_VERSION_ID} == 7 -o ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "openEuler" ];then
+    if [ ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Anolis" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 23 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == 'OpenCloudOS' ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Kylin" ];then
+    if [ ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_VERSION_ID} == 20 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "openSUSE" ];then
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Ubuntu" ];then
+    if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == 'Debian' ];then
+    if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
+        main
+    fi
+else
+    ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
+fi

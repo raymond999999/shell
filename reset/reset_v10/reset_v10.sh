@@ -3,13 +3,15 @@
 #**********************************************************************************
 #Author:        Raymond
 #QQ:            88563128
-#Date:          2025-06-10
+#MP:            Raymond运维
+#Date:          2025-08-31
 #FileName:      reset_v10.sh
-#MIRROR:        https://wx.zsxq.com/group/15555885545422
+#URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
-#               CentOS Stream 8, 9 and 10, Ubuntu 18.04, 20.04, 22.04 and 24.04, 
-#               Debian 11 and 12“ operating systems.
+#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10,
+#               CentOS 7, CentOS Stream 8, 9 and 10,
+#               Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,
+#               Debian 11 , 12 and 13“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
@@ -18,7 +20,11 @@ END='\033[0m'
 os(){
     . /etc/os-release
     MAIN_NAME=`sed -rn '/^NAME=/s@.*="([[:alpha:]]+).*"$@\1@p' /etc/os-release`
-    MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    if [ ${MAIN_NAME} == "Kylin" ];then
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
+    else
+        MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    fi
     if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
         FULL_NAME="${PRETTY_NAME}"
     elif [ ${MAIN_NAME} == "UOS" ];then
@@ -2015,7 +2021,8 @@ set_alias(){
 set_vimrc(){
     read -p "请输入作者名: " AUTHOR
     read -p "请输入QQ号: " QQ
-    read -p "请输入网址: " V_MIRROR
+    read -p "请输入微信公众号: " MP
+    read -p "请输入网址: " URL
     cat >~/.vimrc <<-EOF
 set ts=4
 set expandtab
@@ -2027,16 +2034,17 @@ func SetTitle()
     if expand("%:e") == 'sh'
     call setline(1,"#!/bin/bash")
     call setline(2,"#")
-    call setline(3,"#*********************************************************************************************")
+    call setline(3,"#**********************************************************************************")
     call setline(4,"#Author:        ${AUTHOR}")
     call setline(5,"#QQ:            ${QQ}")
-    call setline(6,"#Date:          ".strftime("%Y-%m-%d"))
-    call setline(7,"#FileName:      ".expand("%"))
-    call setline(8,"#MIRROR:        ${V_MIRROR}")
-    call setline(9,"#Description:   The test script")
-    call setline(10,"#Copyright (C): ".strftime("%Y")." All rights reserved")
-    call setline(11,"#*********************************************************************************************")
-    call setline(12,"")
+    call setline(6,"#MP:            ${MP}")
+    call setline(7,"#Date:          ".strftime("%Y-%m-%d"))
+    call setline(8,"#FileName:      ".expand("%"))
+    call setline(9,"#URL:           ${URL}")
+    call setline(10,"#Description:   The test script")
+    call setline(11,"#Copyright (C): ".strftime("%Y")." All rights reserved")
+    call setline(12,"#**********************************************************************************")
+    call setline(13,"")
     endif
 endfunc
 autocmd BufNewFile * normal G
@@ -2402,8 +2410,26 @@ EOF
 
 main(){
     os
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        menu
+    if [ ${MAIN_NAME} == "Rocky" ];then
+        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+            menu
+        fi
+    elif [ ${MAIN_NAME} == "AlmaLinux" ];then
+        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+            menu
+        fi
+    elif [ ${MAIN_NAME} == "CentOS" ];then
+        if [ ${MAIN_VERSION_ID} == 7 -o ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+            menu
+        fi
+    elif [ ${MAIN_NAME} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+            menu
+        fi
+    elif [ ${MAIN_NAME} == 'Debian' ];then
+        if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
+            menu
+        fi
     else
         ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
     fi

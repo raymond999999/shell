@@ -1,4 +1,4 @@
-# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、AnolisOS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（Uos Server）系统初始化脚本
+# Rocky、Almalinux、CentOS、Ubuntu、Debian、openEuler、AnolisOS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（UOS Server）系统初始化脚本
 
 **Shell脚本源码地址：**
 
@@ -13,7 +13,7 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8、9和10、AlmaLinux 8、9和10、CentOS 7、CentOS Stream 8、9和10、Ubuntu 18.04/20.04/22.04/24.04、Debian 11和12；openEuler版支持的系统：openEuler 22.03和24.03；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；Uos Server版支持的系统：统信（Uos Server） V20。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8、9和10、AlmaLinux 8、9和10、CentOS 7、CentOS Stream 8、9和10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11、12和13；openEuler版支持的系统：openEuler 22.03/24.03 LTS；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；UOS Server版支持的系统：统信（UOS Server） V20。 |
 
 **版本更新日志：**
 
@@ -23,12 +23,13 @@ Github：https://github.com/raymond999999/shell
 |                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 3.在UEFI引导系统中，通过修改GRUB配置文件来更改网卡名时，需注意“grub.cfg”文件的位置已发生改变，已添加了相关功能以适应这一变化； |
 |                          | 4.优化了Ubuntu和Debian系统更改IP地址的操作方法；             |
-|                          | 5.修复了Ubuntu 22.04 IP地址修改完，系统重启后IP被重置问题；  |
+|                          | 5.修复了Ubuntu Server 22.04  LTS的IP地址修改完，系统重启后IP被重置问题； |
 |                          | 6.修复了修改网卡名的bug；                                    |
 |                          | 7.添加了对Rocky Linux 10和Almalinux10系统的支持；            |
-|                          | 8.修改了某些bug；                                            |
-|                          | 9.[reset_v10版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_v10)。 |
-| Uos Server版更新的内容   | 1.添加了对统信（Uos Server）V20系统的支持；                  |
+|                          | 8.添加了对Debian 13系统的支持；                              |
+|                          | 9.修改了某些bug；                                            |
+|                          | 10.[reset_v10版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_v10)。 |
+| Uos Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
 |                          | 4.修改了某些bug；                                            |
@@ -42,7 +43,7 @@ Github：https://github.com/raymond999999/shell
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.修复了“设置PS1”不生效的问题；                              |
-|                          | 5.openSUSE 15系统pcre安装包名改成了pcre-tools，openssl-dever安装包名改成了libopenssl-devel； |
+|                          | 5.openSUSE 15系统pcre安装包名改成了pcre-tools，openssl-devel安装包名改成了libopenssl-devel； |
 |                          | 6.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 7.修复了设置网络时DNS设置不生效的问题；                      |
 |                          | 8.修改了某些bug；                                            |
@@ -66,7 +67,7 @@ Github：https://github.com/raymond999999/shell
 |                          | 7.修复了修改网卡名的bug；                                    |
 |                          | 8.修改了某些bug；                                            |
 |                          | 9.[reset_anolisos版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos)。 |
-| openEuler版更新的内容    | 1.添加了对openEuler 22.03和24.03系统的支持；                 |
+| openEuler版更新的内容    | 1.添加了对openEuler 22.03/24.03 LTS系统的支持；              |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
@@ -112,7 +113,7 @@ Github：https://github.com/raymond999999/shell
 1. 首先说明，脚本必须在root用户下使用。
 
    ```bash
-   # Rocky、Almalinux、CentOS、openEuler、AnolisOS、OpencloudOS、openSUSE、银河麒麟（Kylin Server）和统信（Uos Server）可以使用root用户登录不用设置，Ubuntu和Debian必须先设置root用户登录。
+   # Rocky、Almalinux、CentOS、openEuler、AnolisOS、OpencloudOS、openSUSE、银河麒麟（Kylin Server）和统信（UOS Server）可以使用root用户登录不用设置，Ubuntu和Debian必须先设置root用户登录。
    # 先安装lrzsz工具，把脚本传上去
    raymond@ubuntu2404:~$ sudo apt -y install lrzsz
    raymond@ubuntu2404:~$ rz -E

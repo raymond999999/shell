@@ -51,7 +51,7 @@ install_mysql(){
         apt update &> /dev/null;apt -y install software-properties-common devscripts equivs &> /dev/null
         apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 &> /dev/null
         add-apt-repository --update --yes --enable-source 'deb [arch=amd64] http://nyc2.mirrors.digitalocean.com/mariadb/repo/'${MARIADB_VERSION}'/ubuntu '$(lsb_release -sc)' main' &> /dev/null
-		apt-get -y build-dep mariadb-${MARIADB_VERSION} &> /dev/null
+		apt-get -y build-dep mariadb &> /dev/null
     fi
 
     id mysql &> /dev/null || { useradd -r -s /sbin/nologin -d ${DATA_DIR} mysql ; ${COLOR}"创建mysql用户"${END}; }

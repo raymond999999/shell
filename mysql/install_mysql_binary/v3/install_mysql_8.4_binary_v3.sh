@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-01
+#Date:          2025-09-10
 #FileName:      install_mysql_8.4_binary_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql binary script install supports 
@@ -50,7 +50,7 @@ MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.4/
 MYSQL_FILE="mysql-8.4.5-linux-glibc${GLIBC_VERSION}-x86_64.tar.xz"
 
 check_file(){
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" ];then
         rpm -q wget &> /dev/null || { ${COLOR}"安装wget工具，请稍等......"${END};yum install -y wget &> /dev/null; }
     fi
     if [ ! -e ${MYSQL_FILE} ];then

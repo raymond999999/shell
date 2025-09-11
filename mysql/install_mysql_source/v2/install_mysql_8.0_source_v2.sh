@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-01
+#Date:          2025-09-10
 #FileName:      install_mysql_8.0_source_v2.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql source script install supports 
@@ -59,7 +59,7 @@ ISL_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
 ISL_FILE='isl-0.18.tar.bz2'
 
 check_mysql_file(){
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" ];then
         rpm -q wget &> /dev/null || { ${COLOR}"安装wget工具，请稍等......"${END};yum -y install wget &> /dev/null; }
     fi
     if [ ! -e ${MYSQL_FILE} ];then
@@ -143,7 +143,7 @@ install_mysql(){
     else
         id mysql &> /dev/null || { useradd -r -s /sbin/nologin -d ${DATA_DIR} mysql ; ${COLOR}"成功创建mysql用户！"${END}; }
     fi
-    [ -d ${INSTALL_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
+    [ -d ${DATA_DIR} ] || mkdir -p ${DATA_DIR}
     chown -R mysql:mysql ${DATA_DIR}
     ${COLOR}'开始安装MySQL依赖包，请稍等......'${END}
     if [ ${MAIN_NAME} == "Rocky" ];then
@@ -171,41 +171,31 @@ install_mysql(){
         dnf config-manager --set-enabled PowerTools
     fi
     if [ ${MAIN_NAME} == "Rocky" ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
-            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "Rocky" ];then
         if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
             yum install -y cmake gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "AlmaLinux" ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
+        else
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "AlmaLinux" ];then
         if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
             yum install -y cmake gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
+        else
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
+        if [ ${MAIN_VERSION_ID} == 7 ];then
+            yum install -y centos-release-scl &> /dev/null
+            MIRROR=mirrors.tencent.com
+            OS_RELEASE_FULL_VERSION=`cat /etc/centos-release | sed -rn 's/^(CentOS Linux release )(.*)( \(Core\))/\2/p'`
+            sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^# baseurl=|baseurl=|g' -e 's|^#baseurl=|baseurl=|g' -e 's|http://mirror.centos.org/centos|https://'${MIRROR}'/centos-vault|g' -e "s/7/${OS_RELEASE_FULL_VERSION}/g"  /etc/yum.repos.d/CentOS-SCLo-*.repo
+            yum install -y devtoolset-11-gcc devtoolset-11-gcc-c++ devtoolset-11-binutils gcc gcc-c++ openssl-devel ncurses-devel &> /dev/null
+        elif [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then        
+            yum install -y cmake gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
+        else
             yum install -y cmake openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
         fi
-    fi
-    if [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
-            yum install -y cmake gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
-        yum install -y centos-release-scl &> /dev/null
-        MIRROR=mirrors.tencent.com
-        OS_RELEASE_FULL_VERSION=`cat /etc/centos-release | sed -rn 's/^(CentOS Linux release )(.*)( \(Core\))/\2/p'`
-        sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^# baseurl=|baseurl=|g' -e 's|^#baseurl=|baseurl=|g' -e 's|http://mirror.centos.org/centos|https://'${MIRROR}'/centos-vault|g' -e "s/7/${OS_RELEASE_FULL_VERSION}/g"  /etc/yum.repos.d/CentOS-SCLo-*.repo
-        yum install -y devtoolset-11-gcc devtoolset-11-gcc-c++ devtoolset-11-binutils gcc gcc-c++ openssl-devel ncurses-devel &> /dev/null
     fi
     if [ ${MAIN_NAME} == "openEuler" ];then
         if [ ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
@@ -218,12 +208,11 @@ install_mysql(){
         fi
     fi
     if [ ${MAIN_NAME} == 'OpenCloudOS' ];then
-        if [ ${MAIN_VERSION_ID} == 9 ];then
+        if [ ${MAIN_VERSION_ID} == 8 ];then
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
+        else
             yum install -y cmake gcc gcc-c++ systemd-devel openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
         fi
-    fi
-    if [ ${MAIN_NAME} == 'OpenCloudOS' -a ${MAIN_VERSION_ID} == 8 ];then
-        yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
     fi
     if [ ${MAIN_NAME} == "Kylin" ];then
         if [ ${MAIN_VERSION_ID} == 10 ];then
@@ -241,26 +230,19 @@ install_mysql(){
         fi
     fi
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 24 ];then
+        if [ ${MAIN_VERSION_ID} == 18 ];then
+            apt update && apt install -y gcc-8 g++-8 libssl-dev libncurses5-dev pkg-config
+        elif [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 ];then
+            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config
+        else
             apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config libtirpc-dev
         fi
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 ];then
-            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config
-        fi
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" -a ${MAIN_VERSION_ID} == 18 ];then
-        apt update && apt install -y gcc-8 g++-8 libssl-dev libncurses5-dev pkg-config
     fi
     if [ ${MAIN_NAME} == 'Debian' ];then
         if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 ];then
-            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config
-        fi
-    fi
-    if [ ${MAIN_NAME} == 'Debian' ];then
-        if [ ${MAIN_VERSION_ID} == 13 ];then
             apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config libtirpc-dev
+        else
+            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev pkg-config
         fi
     fi
     if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then

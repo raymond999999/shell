@@ -122,7 +122,7 @@ EOF
         apt -y install build-essential cmake bison libncurses5-dev libssl-dev pkg-config
     fi
     id mysql &> /dev/null || { useradd -r -s /sbin/nologin -d ${DATA_DIR} mysql ; ${COLOR}"创建mysql用户"${END}; }
-    [ -d ${INSTALL_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
+    [ -d ${DATA_DIR} ] || mkdir -p ${DATA_DIR}
     chown -R mysql.mysql ${DATA_DIR}
 
     if [ ${OS_ID} == "CentOS" -a ${OS_RELEASE_VERSION} == 7 ];then

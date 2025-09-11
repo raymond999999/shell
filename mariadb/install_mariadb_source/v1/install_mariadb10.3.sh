@@ -55,7 +55,7 @@ install_mysql(){
     fi
 
     id mysql &> /dev/null || { useradd -r -s /sbin/nologin -d ${DATA_DIR} mysql ; ${COLOR}"创建mysql用户"${END}; }
-    [ -d ${INSTALL_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
+    [ -d ${DATA_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
     chown -R mysql.mysql ${DATA_DIR}
 
     cd  ${SRC_DIR}

@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-01
+#Date:          2025-09-10
 #FileName:      install_mariadb_binary_v2.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mariadb binary script install supports 
@@ -50,7 +50,7 @@ MARIADB_URL="https://mirrors.tuna.tsinghua.edu.cn/mariadb///mariadb-${MARIADB_VE
 MARIADB_FILE="mariadb-${MARIADB_VERSION}-linux-systemd-x86_64.tar.gz"
 
 check_file(){
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" ];then
         rpm -q wget &> /dev/null || { ${COLOR}"安装wget工具，请稍等......"${END};yum install -y wget &> /dev/null; }
     fi
     if [ ! -e ${MARIADB_FILE} ];then

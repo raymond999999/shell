@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-01
+#Date:          2025-09-10
 #FileName:      install_mariadb_source_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mariadb source script install supports 
@@ -63,7 +63,7 @@ CMAKE_URL='https://cmake.org/files/v3.31/'
 CMAKE_FILE='cmake-3.31.7-linux-x86_64.tar.gz'
 
 check_mysql_file(){
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" ];then
         rpm -q wget &> /dev/null || { ${COLOR}"安装wget工具，请稍等......"${END};yum -y install wget &> /dev/null; }
     fi
     if [ ! -e ${MARIADB_FILE} ];then
@@ -122,67 +122,53 @@ install_mariadb(){
     else
         id mysql &> /dev/null || { useradd -r -s /sbin/nologin -d ${DATA_DIR} mysql ; ${COLOR}"成功创建mysql用户！"${END}; }
     fi
-    [ -d ${INSTALL_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
+    [ -d ${DATA_DIR} ] || mkdir -p ${DATA_DIR} &> /dev/null
     chown -R mysql:mysql ${DATA_DIR}
     ${COLOR}'开始安装MariaDB依赖包，请稍等......'${END}
     if [ ${MAIN_NAME} == "Rocky" ];then
-        if [ ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
-            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "Rocky" ];then
         if [ ${MAIN_VERSION_ID} == 8 ];then
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "AlmaLinux" ];then
-        if [ ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        else
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "AlmaLinux" ];then
         if [ ${MAIN_VERSION_ID} == 8 ];then
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
     fi
+
     if [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        if [ ${MAIN_VERSION_ID} == 7 ];then
+            yum install -y gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
+        elif [ ${MAIN_VERSION_ID} == 8 ];then
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
             yum install -y cmake openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 8 ];then
-            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
-        fi
-    fi
-    if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
-        yum install -y gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
-    fi
-    if [ ${MAIN_NAME} == "openEuler" ];then
-        if [ ${MAIN_VERSION_ID} == 24 ];then
-            yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "openEuler" ];then
         if [ ${MAIN_VERSION_ID} == 22 ];then
             yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
+            yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "Anolis" ];then
-        if [ ${MAIN_VERSION_ID} == 23 ];then
+        if [ ${MAIN_VERSION_ID} == 8 ];then
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
-    fi
-    if [ ${MAIN_NAME} == "Anolis" -a ${MAIN_VERSION_ID} == 8 ];then
-        yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
     fi
     if [ ${MAIN_NAME} == 'OpenCloudOS' ];then
-        if [ ${MAIN_VERSION_ID} == 9 ];then
+        if [ ${MAIN_VERSION_ID} == 8 ];then
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
             yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
-    fi
-    if [ ${MAIN_NAME} == "OpenCloudOS" -a ${MAIN_VERSION_ID} == 8 ];then
-        yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
     fi
     if [ ${MAIN_NAME} == "Kylin" ];then
         if [ ${MAIN_VERSION_ID} == 10 ];then
@@ -200,12 +186,11 @@ install_mariadb(){
         fi
     fi
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        if [ ${MAIN_VERSION_ID} == 18 ];then
+            apt update && apt install -y g++ libssl-dev libncurses5-dev libpcre2-dev libsystemd-dev
+        else
             apt update && apt install -y cmake g++ libssl-dev libncurses5-dev libpcre2-dev libsystemd-dev
         fi
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" -a ${MAIN_VERSION_ID} == 18 ];then
-        apt update && apt install -y g++ libssl-dev libncurses5-dev libpcre2-dev libsystemd-dev
     fi
     if [ ${MAIN_NAME} == 'Debian' ];then
         if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then

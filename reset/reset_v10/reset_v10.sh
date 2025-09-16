@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-08-31
+#Date:          2025-09-14
 #FileName:      reset_v10.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -1717,18 +1717,13 @@ set_mirror_repository(){
 
 rocky_almalinux_centos_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
-    yum install -y gcc make autoconf gcc-c++ glibc glibc-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
-    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" -o ${MAIN_VERSION_ID} == "9" ];then
-        yum install -y pcre pcre-devel &> /dev/null
-    else
-        yum install -y pcre2 pcre2-devel &> /dev/null
-    fi
+    yum install -y vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip man-pages &> /dev/null
     ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 ubuntu_debian_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
-    apt install -y iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev gcc openssh-server iotop unzip zip
+    apt install -y iproute2 ntpdate tcpdump telnet traceroute lrzsz tree iotop unzip zip
     ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 

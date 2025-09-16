@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-08-31
+#Date:          2025-09-14
 #FileName:      reset_uos_server.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -67,7 +67,7 @@ check_ip(){
     fi
 }
 
-set_network(){
+set_single_network(){
     ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
     while true; do
         read -p "请输入IP地址: " IP
@@ -102,8 +102,6 @@ GATEWAY=${GATEWAY}
 DNS1=${PRIMARY_DNS}
 DNS2=${BACKUP_DNS}
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
-	sleep 10 && shutdown -r now
 }
 
 set_dual_network(){
@@ -157,6 +155,15 @@ TYPE=Ethernet
 IPADDR=${IP2}
 PREFIX=${PREFIX2}
 EOF
+}
+
+set_network(){
+    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+    if [ ${IP_NUM} == "2" ];then
+        set_single_network
+    else
+        set_dual_network
+    fi
     ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
 	sleep 10 && shutdown -r now
 }
@@ -169,7 +176,7 @@ set_hostname(){
 
 minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
-    yum -y install gcc make autoconf gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel zlib-devel vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip nfs-utils man-pages &> /dev/null
+    yum install -y vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip man-pages &> /dev/null
     ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成!"${END}
 }
 
@@ -565,23 +572,22 @@ menu(){
         cat <<-EOF
 ***************************************************************
 *                   系统初始化脚本菜单                        *
-* 1.修改网卡名                13.更改SSH端口号                *
-* 2.设置网络(单网卡)          14.设置系统别名                 *
-* 3.设置网络(双网卡)          15.设置vimrc配置文件            *
-* 4.设置主机名                16.安装邮件服务并配置邮件       *
-* 5.Minimal安装建议安装软件   17.设置PS1(请进入选择颜色)      *
-* 6.关闭防火墙                18.设置默认文本编辑器为vim      *
-* 7.禁用SELinux               19.设置history格式              *
-* 8.禁用SWAP                  20.禁用ctrl+alt+del重启系统功能 *
-* 9.设置系统时区              21.重启系统                     *
-* 10.优化资源限制参数         22.关机                         *
-* 11.优化内核参数             23.退出                         *
-* 12.优化SSH                                                  *
+* 1.修改网卡名                12.更改SSH端口号                *
+* 2.设置网络                  13.设置系统别名                 *
+* 3.设置主机名                14.设置vimrc配置文件            *
+* 4.Minimal安装建议安装软件   15.安装邮件服务并配置邮件       *
+* 5.关闭防火墙                16.设置PS1(请进入选择颜色)      *
+* 6.禁用SELinux               17.设置默认文本编辑器为vim      *
+* 7.禁用SWAP                  18.设置history格式              *
+* 8.设置系统时区              19.禁用ctrl+alt+del重启系统功能 *
+* 9.优化资源限制参数          20.重启系统                     *
+* 10.优化内核参数             21.关机                         *
+* 11.优化SSH                  22.退出                         *
 ***************************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-23): " choice
+        read -p "请选择相应的编号(1-22): " choice
         case ${choice} in
         1)
             set_eth
@@ -590,70 +596,67 @@ EOF
             set_network
             ;;
         3)
-            set_dual_network
-            ;;
-        4)
             set_hostname
             ;;
-        5)
+        4)
             minimal_install
             ;;
-        6)
+        5)
             disable_firewalls
             ;;
-        7)
+        6)
             disable_selinux
             ;;
-        8)
+        7)
             set_swap
             ;;
-        9)
+        8)
             set_localtime
             ;;
-        10)
+        9)
             set_limits
             ;;
-        11)
+        10)
             set_kernel
             ;;
-        12)
+        11)
             optimization_ssh
             ;;
-        13)
+        12)
             set_ssh_port
             ;;
-        14)
+        13)
             set_alias
             ;;
-        15)
+        14)
             set_vimrc
             ;;
-        16)
+        15)
             set_mail
             ;;
-        17)
+        16)
             set_ps1
             ;;
-        18)
+        17)
             set_vim_env
             ;;
-        19)
+        18)
             set_history_env
             ;;
-        20)
+        19)
             disable_restart
             ;;
-        21)
+        20)
             reboot
             ;;
-        22)
+        21)
             shutdown -h now
             ;;
-        23)
+        22)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-23)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-22)！"${END}
             ;;
         esac
     done

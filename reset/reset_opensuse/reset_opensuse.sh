@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-08-31
+#Date:          2025-09-14
 #FileName:      reset_opensuse.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -296,7 +296,7 @@ minimal_install(){
     ${COLOR}'开始安装“建议安装软件包”，请稍等......'${END}
     zypper addrepo https://download.opensuse.org/repositories/home:psi-jack/15.6/home:psi-jack.repo &> /dev/null
     zypper --no-gpg-checks refresh &> /dev/null
-    zypper install -y gcc make autoconf gcc-c++ glibc-devel pcre-tools pcre-devel libopenssl-devel systemd-devel zlib-devel lrzsz tree tmux tcpdump iotop bc &> /dev/null
+    zypper install -y lrzsz tree tmux tcpdump iotop bc &> /dev/null
     ${COLOR}"${FULL_NAME}操作系统，建议安装软件包已安装完成！"${END}
 }
 

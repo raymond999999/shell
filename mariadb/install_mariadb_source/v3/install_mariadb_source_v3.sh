@@ -4,13 +4,13 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-10
+#Date:          2025-09-15
 #FileName:      install_mariadb_source_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mariadb source script install supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
-#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10, 
+#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10 and v11, 
 #               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
 #               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -173,6 +173,8 @@ install_mariadb(){
     if [ ${MAIN_NAME} == "Kylin" ];then
         if [ ${MAIN_VERSION_ID} == 10 ];then
             yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel systemd-devel &> /dev/null
+        else
+            yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel pcre2-devel systemd-devel &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "UOS" ];then
@@ -193,9 +195,7 @@ install_mariadb(){
         fi
     fi
     if [ ${MAIN_NAME} == 'Debian' ];then
-        if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
-            apt update && apt install -y cmake g++ libssl-dev libncurses5-dev libpcre2-dev libsystemd-dev
-        fi
+        apt update && apt install -y cmake g++ libssl-dev libncurses5-dev libpcre2-dev libsystemd-dev
     fi
     if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
         install_cmake
@@ -320,7 +320,7 @@ elif [ ${MAIN_NAME} == 'OpenCloudOS' ];then
         main
     fi
 elif [ ${MAIN_NAME} == "Kylin" ];then
-    if [ ${MAIN_VERSION_ID} == 10 ];then
+    if [ ${MAIN_VERSION_ID} == 10 -o ${MAIN_VERSION_ID} == 11 ];then
         main
     fi
 elif [ ${MAIN_NAME} == "UOS" ];then

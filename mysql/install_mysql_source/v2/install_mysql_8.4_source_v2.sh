@@ -4,13 +4,13 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-10
+#Date:          2025-09-15
 #FileName:      install_mysql_8.4_source_v2.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql source script install supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
-#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10, 
+#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10 and v11, 
 #               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
 #               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -200,7 +200,7 @@ install_mysql(){
         elif [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
             yum install -y cmake gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
         else
-            yum install -y cmake openssl-devel ncurses-devel libtirpc-devel rpcgen boost-devel bison &> /dev/null
+            yum install -y cmake gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen boost-devel bison &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "openEuler" ];then
@@ -223,9 +223,7 @@ install_mysql(){
         fi
     fi
     if [ ${MAIN_NAME} == "Kylin" ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
-            yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
-        fi
+        yum install -y cmake make gcc gcc-c++ openssl-devel ncurses-devel libtirpc-devel rpcgen &> /dev/null
     fi
     if [ ${MAIN_NAME} == "UOS" ];then
         if [ ${MAIN_VERSION_ID} == 20 ];then
@@ -273,20 +271,14 @@ install_mysql(){
     if [ ${MAIN_NAME} == 'OpenCloudOS' -a ${MAIN_VERSION_ID} == 8 ];then
         install_gcc
     fi
-    if [ ${MAIN_NAME} == 'Kylin' ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
-            install_gcc
-        fi
+    if [ ${MAIN_NAME} == 'Kylin' -a ${MAIN_VERSION_ID} == 10 ];then
+        install_gcc
     fi
-    if [ ${MAIN_NAME} == 'UOS' ];then
-        if [ ${MAIN_VERSION_ID} == 20 ];then
-            install_gcc
-        fi
+    if [ ${MAIN_NAME} == 'UOS' -a ${MAIN_VERSION_ID} == 20 ];then
+        install_gcc
     fi
-    if [ ${MAIN_NAME} == 'openSUSE' ];then
-        if [ ${MAIN_VERSION_ID} == 15 ];then
-            install_gcc
-        fi
+    if [ ${MAIN_NAME} == 'openSUSE' -a ${MAIN_VERSION_ID} == 20 ];then
+        install_gcc
     fi
     ${COLOR}'开始编译安装MySQL，请稍等......'${END}
     cd  ${SRC_DIR}
@@ -308,50 +300,37 @@ install_mysql(){
     tar xf ${MYSQL_FILE}
     MYSQL_DIR=`echo ${MYSQL_FILE}| sed -nr 's/^(.*[0-9]).*/\1/p'`
     cd ${MYSQL_DIR}
-    if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 9 ];then
-        cmake \
+    if [ ${MAIN_NAME} == "Debian" -a ${MAIN_VERSION_ID} == 13 ];then
+        cmake . \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-        -DCMAKE_CXX_FLAGS="-I/usr/include/tirpc/rpc" \
-        -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
-        -DSYSCONFDIR=/etc \
-        -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
-        -DDEFAULT_CHARSET=utf8mb4 \
-        -DDEFAULT_COLLATION=utf8mb4_general_ci \
+        -DMYSQL_DATADIR=${DATA_DIR}/ \
+        -DSYSCONFDIR=/etc/ \
         -DWITH_INNOBASE_STORAGE_ENGINE=1 \
         -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
         -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
-        -DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
-        -DMYSQL_DATADIR=${DATA_DIR}\
-        -DFORCE_INSOURCE_BUILD=1 \
-        -DWITH_SYSTEMD=1
-    elif [ ${MAIN_NAME} == "Debian" -a ${MAIN_VERSION_ID} == 13 ];then
-        cmake \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+        -DWITH_DEBUG=0 \
+        -DWITH_SSL=system \
+        -DWITH_LIBWRAP=0 \
+        -DENABLED_LOCAL_INFILE=1 \
         -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
-        -DSYSCONFDIR=/etc \
-        -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
         -DDEFAULT_CHARSET=utf8mb4 \
         -DDEFAULT_COLLATION=utf8mb4_general_ci \
-        -DWITH_INNOBASE_STORAGE_ENGINE=1 \
-        -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
-        -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
-        -DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
-        -DMYSQL_DATADIR=${DATA_DIR}\
-        -DWITH_BOOST=/usr/local/src/${MYSQL_DIR}/boost/boost_1_77_0/ \
         -DFORCE_INSOURCE_BUILD=1
     else
-        cmake \
+        cmake . \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-        -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
-        -DSYSCONFDIR=/etc \
-        -DSYSTEMD_PID_DIR=${INSTALL_DIR} \
-        -DDEFAULT_CHARSET=utf8mb4 \
-        -DDEFAULT_COLLATION=utf8mb4_general_ci \
+        -DMYSQL_DATADIR=${DATA_DIR}/ \
+        -DSYSCONFDIR=/etc/ \
         -DWITH_INNOBASE_STORAGE_ENGINE=1 \
         -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
         -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
-        -DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
-        -DMYSQL_DATADIR=${DATA_DIR}\
+        -DWITH_DEBUG=0 \
+        -DWITH_SSL=system \
+        -DWITH_LIBWRAP=0 \
+        -DENABLED_LOCAL_INFILE=1 \
+        -DMYSQL_UNIX_ADDR=${DATA_DIR}/mysql.sock \
+        -DDEFAULT_CHARSET=utf8mb4 \
+        -DDEFAULT_COLLATION=utf8mb4_general_ci \
         -DFORCE_INSOURCE_BUILD=1 \
         -DWITH_SYSTEMD=1
     fi
@@ -506,7 +485,7 @@ elif [ ${MAIN_NAME} == 'OpenCloudOS' ];then
         main
     fi
 elif [ ${MAIN_NAME} == "Kylin" ];then
-    if [ ${MAIN_VERSION_ID} == 10 ];then
+    if [ ${MAIN_VERSION_ID} == 10 -o ${MAIN_VERSION_ID} == 11 ];then
         main
     fi
 elif [ ${MAIN_NAME} == "UOS" ];then

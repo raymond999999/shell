@@ -4,13 +4,13 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-10
+#Date:          2025-09-16
 #FileName:      install_postgresql_source.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The postgresql source script install supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
-#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10, 
+#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10 and v11, 
 #               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
 #               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
@@ -63,30 +63,21 @@ install_postgresql(){
     [ -d ${INSTALL_DIR} ] && { ${COLOR}"PostgreSQL数据库已存在，安装失败！"${END};exit; }
     ${COLOR}"开始安装PostgreSQL数据库......"${END}
     ${COLOR}'开始安装PostgreSQL依赖包，请稍等......'${END}
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "OpenCloudOS" ];then
-        yum install -y make gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
-    fi
-    if [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 7 ];then
-            yum install -y gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
-        else
-            yum install -y make gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
-        fi
+    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "OpenCloudOS" ];then
+        yum install -y gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
     fi
     if [ ${MAIN_NAME} == "openEuler" ];then
-        yum install -y make gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
+        yum install -y gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
     fi
     if [ ${MAIN_NAME} == "Anolis" ];then
         if [ ${MAIN_VERSION_ID} == 8 ];then
-            yum install -y make gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
+            yum install -y gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel make docbook-dtds docbook-style-xsl libxslt &> /dev/null
         else
             yum install -y gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel perl-FindBin perl-core docbook-dtds docbook-style-xsl libxslt &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "Kylin" ];then
-        if [ ${MAIN_VERSION_ID} == 10 ];then
-            yum install -y make gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
-        fi
+        yum install -y gcc libicu-devel bison flex perl readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-dtds docbook-style-xsl libxslt &> /dev/null
     fi
     if [ ${MAIN_NAME} == "UOS" ];then
         if [ ${MAIN_VERSION_ID} == 20 ];then
@@ -95,18 +86,18 @@ install_postgresql(){
     fi
     if [ ${MAIN_NAME} == "openSUSE" ];then
         if [ ${MAIN_VERSION_ID} == 15 ];then
-            zypper install -y make gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel docbook-xsl-stylesheets &> /dev/null
+            zypper install -y gcc libicu-devel bison flex readline-devel zlib-devel openssl-devel libxml2-devel systemd-devel make docbook-xsl-stylesheets &> /dev/null
         fi
     fi
     if [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${MAIN_VERSION_ID} == 18 ];then
-            apt update && apt install -y make gcc pkg-config libicu-dev bison flex libreadline-dev libssl-dev libxml2-dev libsystemd-dev docbook-xml docbook-xsl libxml2-utils xsltproc fop
+            apt update && apt install -y gcc pkg-config libicu-dev bison flex libreadline-dev libssl-dev libxml2-dev libsystemd-dev make docbook-xml docbook-xsl libxml2-utils xsltproc fop
         else
-            apt update && apt install -y make gcc pkg-config libicu-dev bison flex libreadline-dev zlib1g-dev libssl-dev libxml2-dev libsystemd-dev docbook-xml docbook-xsl libxml2-utils xsltproc fop
+            apt update && apt install -y gcc pkg-config libicu-dev bison flex libreadline-dev zlib1g-dev libssl-dev libxml2-dev libsystemd-dev make docbook-xml docbook-xsl libxml2-utils xsltproc fop
         fi
     fi
     if [ ${MAIN_NAME} == 'Debian' ];then
-        apt update && apt install -y make gcc pkg-config libicu-dev bison flex libreadline-dev zlib1g-dev libssl-dev libxml2-dev libsystemd-dev docbook-xml docbook-xsl libxml2-utils xsltproc fop
+        apt update && apt install -y gcc pkg-config libicu-dev bison flex libreadline-dev zlib1g-dev libssl-dev libxml2-dev libsystemd-dev make docbook-xml docbook-xsl libxml2-utils xsltproc fop
     fi
     ${COLOR}'开始编译安装PostgreSQL，请稍等......'${END}
     cd  ${SRC_DIR}

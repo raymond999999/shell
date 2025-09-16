@@ -13,7 +13,7 @@ Github：https://github.com/raymond999999/shell
 
 | **支持的功能**                                               | **支持的系统**                                               |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8、9和10、AlmaLinux 8、9和10、CentOS 7、CentOS Stream 8、9和10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11、12和13；openEuler版支持的系统：openEuler 22.03/24.03 LTS；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10；UOS Server版支持的系统：统信（UOS Server） V20。 |
+| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8、9和10、AlmaLinux 8、9和10、CentOS 7、CentOS Stream 8、9和10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11、12和13；openEuler版支持的系统：openEuler 22.03/24.03 LTS；Anolis OS版支持的系统：AnolisOS 8和23；OpenCloudOS版支持的系统：OpenCloudOS 8和9；openSUSE版支持的系统：openSUSE 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10/V11；UOS Server版支持的系统：统信（UOS Server） V20。 |
 
 **版本更新日志：**
 
@@ -38,7 +38,8 @@ Github：https://github.com/raymond999999/shell
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
 |                          | 4.修改了某些bug；                                            |
-|                          | 5.[reset_kylin_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server)。 |
+|                          | 5.添加了对银河麒麟（Kylin Server）V11系统的支持；            |
+|                          | 6.[reset_kylin_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server)。 |
 | openSUSE版更新的内容     | 1.添加了对openSUSE 15系统的支持；                            |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |

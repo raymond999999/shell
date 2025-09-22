@@ -4,11 +4,11 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-14
+#Date:          2025-09-22
 #FileName:      reset_v10.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10,
+#               “Rocky Linux 8, 9 and 10, AlmaLinux 8, 9 and 10,
 #               CentOS 7, CentOS Stream 8, 9 and 10,
 #               Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,
 #               Debian 11 , 12 and 13“ operating systems.

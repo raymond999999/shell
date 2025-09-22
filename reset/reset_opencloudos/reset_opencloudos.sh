@@ -4,11 +4,11 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-14
+#Date:          2025-09-22
 #FileName:      reset_opencloudos.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “OpencloudOS 8 and 9“ operating systems.
+#               “OpenCloudOS 8 and 9“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"

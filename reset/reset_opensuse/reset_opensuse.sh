@@ -4,11 +4,11 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-14
+#Date:          2025-09-22
 #FileName:      reset_opensuse.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “openSUSE 15“ operating systems.
+#               “openSUSE Leap 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"

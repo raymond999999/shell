@@ -4,15 +4,15 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-16
+#Date:          2025-09-22
 #FileName:      install_postgresql_source.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The postgresql source script install supports 
-#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10, CentOS 7, 
+#               “Rocky Linux 8, 9 and 10, AlmaLinux 8, 9 and 10, CentOS 7, 
 #               CentOS Stream 8, 9 and 10, openEuler 22.03 and 24.03 LTS, 
-#               AnolisOS 8 and 23, OpencloudOS 8 and 9, Kylin Server v10 and v11, 
+#               AnolisOS 8 and 23, OpenCloudOS 8 and 9, Kylin Server v10 and v11, 
 #               UOS Server v20, Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,  
-#               Debian 11 , 12 and 13, openSUSE 15“ operating systems.
+#               Debian 11 , 12 and 13, openSUSE Leap 15“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"

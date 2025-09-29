@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-22
+#Date:          2025-09-29
 #FileName:      install_chrony_client_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The chrony client script install supports 
@@ -36,7 +36,7 @@ os(){
 }
 
 os
-SERVER=172.31.0.9
+SERVER=10.0.0.10
 
 install_chrony(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "openEuler" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "openSUSE" -o ${MAIN_NAME} == "Kylin" -o ${MAIN_NAME} == "UOS" ];then

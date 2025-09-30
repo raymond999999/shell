@@ -11,17 +11,52 @@ Github：https://github.com/raymond999999/shell
 
 您可以从上方的Gitee或Github代码仓库中拉取脚本。
 
-**支持的功能和系统：**
+**支持的功能：**
 
-| **支持的功能**                                               | **支持的系统**                                               |
+| **支持的功能**                                               | 备注                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 修改网卡名、设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡）、设置主机名、设置镜像仓库、Minimal安装建议安装软件、关闭防火墙、禁用SELinux、禁用SWAP、设置系统时区、优化资源限制参数、优化内核参数、优化SSH、更改SSH端口号、设置系统别名、设置vimrc配置文件、安装邮件服务并配置、设置PS1、设置默认文本编辑器为vim、设置history格式、禁用ctrl+alt+del重启系统功能、Ubuntu和Debian设置root用户登录、Ubuntu卸载无用软件包、Ubuntu卸载snap。 | v10版支持的系统：Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11/12/13；openEuler版支持的系统：openEuler 22.03/24.03 LTS；Anolis OS版支持的系统：AnolisOS 8/23；OpenCloudOS版支持的系统：OpenCloudOS 8/9；openSUSE版支持的系统：openSUSE Leap 15；Kylin Server版支持的系统：银河麒麟（Kylin Server） V10/V11；UOS Server版支持的系统：统信（UOS Server） V20。 |
+| 1.修改网卡名                                                 | openSUSE操作系统默认网卡名就是eth0、eth1不用修改             |
+| 2.设置网络（包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡） |                                                              |
+| 3.设置主机名                                                 |                                                              |
+| 4.设置镜像仓库                                               | Kylin Server和UOS Server操作系统只有官方镜像仓库，没有合适的第三方镜像仓库，不用设置 |
+| 5.Minimal安装建议安装软件                                    |                                                              |
+| 6.关闭防火墙                                                 | Ubuntu操作系统默认安装的防火墙的防火墙是ufw，Debian操作系统默认没有安装防火墙，其它操作系统默认安装的防火墙都是firewall |
+| 7.禁用SELinux                                                | Ubuntu、Debian和openSUSE操作系统默认没有安装SELinux，不用设置 |
+| 8.禁用AppArmor                                               | 只有openSUSE操作系统默认安装AppArmor，其它操作系统都不用设置 |
+| 9.禁用SWAP                                                   |                                                              |
+| 10.设置系统时区                                              |                                                              |
+| 11.优化资源限制参数                                          |                                                              |
+| 12.优化内核参数                                              |                                                              |
+| 13.优化SSH                                                   |                                                              |
+| 14.更改SSH端口号                                             |                                                              |
+| 15.设置系统别名                                              |                                                              |
+| 16.设置vimrc配置文件                                         |                                                              |
+| 17.安装邮件服务并配置                                        |                                                              |
+| 18.设置PS1                                                   |                                                              |
+| 19.设置默认文本编辑器为vim                                   |                                                              |
+| 20.设置history格式                                           |                                                              |
+| 21.禁用ctrl+alt+del重启系统功能                              |                                                              |
+| 22.Ubuntu和Debian设置root用户登录                            | 只支持Ubuntu和Debian操作系统                                 |
+| 23.Ubuntu卸载无用软件包                                      | 只支持Ubuntu操作系统                                         |
+| 24.Ubuntu卸载snap                                            | 只支持Ubuntu操作系统                                         |
+
+**版本支持的操作系统：**
+
+| 版本           | **支持的操作系统**                                           |
+| -------------- | ------------------------------------------------------------ |
+| v10版          | Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11/12/13 |
+| openEuler版    | openEuler 22.03/24.03 LTS                                    |
+| AnolisOS版     | AnolisOS 8/23                                                |
+| OpenCloudOS版  | OpenCloudOS 8/9                                              |
+| openSUSE版     | openSUSE Leap 15                                             |
+| Kylin Server版 | 银河麒麟（Kylin Server） V10/V11                             |
+| UOS Server版   | 统信（UOS Server） V20                                       |
 
 **版本更新日志：**
 
 | 版本                     | 功能                                                         |
 | ------------------------ | ------------------------------------------------------------ |
-| v10版更新内容            | 1.为Rocky Linux 9、AlmaLinux 9、CentOS Stream 9及10添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
+| v10版更新内容            | 1.为Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10添加了修改网卡命名为`eth0`、`eth1`等传统命名方式的功能； |
 |                          | 2.由于Rocky Linux 9、AlmaLinux 9、CentOS Stream 9和10对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 3.在UEFI引导系统中，通过修改GRUB配置文件来更改网卡名时，需注意“grub.cfg”文件的位置已发生改变，已添加了相关功能以适应这一变化； |
 |                          | 4.优化了Ubuntu和Debian系统更改IP地址的操作方法；             |

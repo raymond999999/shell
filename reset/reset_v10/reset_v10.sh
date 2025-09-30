@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-22
+#Date:          2025-09-30
 #FileName:      reset_v10.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -24,13 +24,6 @@ os(){
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
     else
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        FULL_NAME="${PRETTY_NAME}"
-    elif [ ${MAIN_NAME} == "UOS" ];then
-        FULL_NAME="${NAME}"
-    else
-        FULL_NAME="${NAME} ${VERSION_ID}"
     fi
 }
 
@@ -79,29 +72,29 @@ EOF
 set_rocky_almalinux_centos_eth(){
     if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
         if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-            ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+            ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
         else
             set_rocky_almalinux_centos_7_8_eth
-	        ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+	        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
             sleep 10 && shutdown -r now
         fi
     else
         IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
         if [ ${IP_NUM} == "2" ];then
             if [ -f /etc/systemd/network/70-eth0.link ];then
-                ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
             else
                 set_rocky_almalinux_centos_9_10_eth0
-	            ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
                 sleep 10 && shutdown -r now
             fi
         else
             if [ -f /etc/systemd/network/70-eth0.link -a -f /etc/systemd/network/70-eth1.link ];then
-                ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
             else
                 set_rocky_almalinux_centos_9_10_eth0
                 set_rocky_almalinux_centos_9_10_eth1
-	            ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
                 sleep 10 && shutdown -r now
             fi
         fi
@@ -110,7 +103,7 @@ set_rocky_almalinux_centos_eth(){
 
 set_ubuntu_debian_eth(){
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q efi;then
@@ -137,7 +130,7 @@ EOF
         else
             sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/network/interfaces
         fi
-	    ${COLOR}"${FULL_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
+	    ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
         sleep 10 && shutdown -r now
     fi
 }
@@ -428,13 +421,13 @@ set_network(){
             set_debian_network_eth1
         fi
     fi
-    ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
 }
 
 set_hostname(){
     read -p "请输入主机名: " HOST
     hostnamectl set-hostname ${HOST}
-    ${COLOR}"${FULL_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
 }
 
 aliyun(){
@@ -550,7 +543,7 @@ set_yum_rocky_8_9_10(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 rocky_8_9_10_base_menu(){
@@ -642,14 +635,14 @@ set_devel_rocky_9_10(){
     dnf config-manager --set-enabled devel
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，devel仓库镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，devel仓库镜像源设置完成！"${END}
 }
 
 set_powertools_rocky_almalinux_centos_8(){
     dnf config-manager --set-enabled powertools
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，PowerTools仓库镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，PowerTools仓库镜像源设置完成！"${END}
 }
 
 set_yum_almalinux_8_9_10(){
@@ -657,7 +650,7 @@ set_yum_almalinux_8_9_10(){
     sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^# baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/almalinux*.repo
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 almalinux_8_9_10_base_menu(){
@@ -741,7 +734,7 @@ EOF
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null
     dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，devel仓库镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，devel仓库镜像源设置完成！"${END}
 }
 
 almalinux_9_10_devel_menu(){
@@ -818,11 +811,11 @@ set_crb_almalinux_centos_9_10(){
     dnf config-manager --set-enabled crb
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，crb仓库镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，crb仓库镜像源设置完成！"${END}
 }
 
 set_yum_centos_stream_9_10_perl(){
-    ${COLOR}"由于${FULL_NAME}操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的${FULL_NAME}操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
+    ${COLOR}"由于${PRETTY_NAME}操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的${PRETTY_NAME}操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！"${END}
     sleep 10
     PERL_FILE=update_mirror.pl
     if [ ! -e ${PERL_FILE} ];then
@@ -835,7 +828,7 @@ set_yum_centos_stream_9_10_perl(){
     perl ./update_mirror.pl /etc/yum.repos.d/centos*.repo
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 set_yum_centos_stream_9_10(){
@@ -843,7 +836,7 @@ set_yum_centos_stream_9_10(){
     sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/centos*.repo
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_stream_9_10_base_menu(){
@@ -931,7 +924,7 @@ set_yum_centos_stream_8(){
     fi
     ${COLOR}"更新镜像源中,请稍等..。。。."${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_stream_8_base_menu(){
@@ -1052,7 +1045,7 @@ set_epel_rocky_almalinux_centos_8_9_10(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，EPEL镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，EPEL镜像源设置完成！"${END}
 }
 
 rocky_almalinux_centos_8_9_10_epel_menu(){
@@ -1165,7 +1158,7 @@ set_yum_centos_7(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     yum clean all &> /dev/null && yum makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 centos_7_base_menu(){
@@ -1267,7 +1260,7 @@ set_epel_centos_7(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，EPEL镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，EPEL镜像源设置完成！"${END}
 }
 
 centos_7_epel_menu(){
@@ -1329,14 +1322,14 @@ EOF
             if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
                 set_devel_rocky_9_10
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有devel仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有devel仓库，不用设置！"${END}
             fi
             ;;
         4)
             if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
             fi
             ;;
         5)
@@ -1374,21 +1367,21 @@ EOF
             if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
                 set_crb_almalinux_centos_9_10
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有crb仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有crb仓库，不用设置！"${END}
             fi
             ;;
         4)
             if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
                 almalinux_9_10_devel_menu
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有devel仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有devel仓库，不用设置！"${END}
             fi
             ;;
         5)
             if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置!"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有PowerTools仓库，不用设置!"${END}
             fi
             ;;
         6)
@@ -1439,14 +1432,14 @@ EOF
             if [ ${MAIN_VERSION_ID} == "9" -o ${MAIN_VERSION_ID} == "10" ];then
                 set_crb_almalinux_centos_9_10
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有crb仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有crb仓库，不用设置！"${END}
             fi
             ;;
         4)
             if [ ${MAIN_VERSION_ID} == "8" ];then
                 set_powertools_rocky_almalinux_centos_8
             else
-                ${COLOR}"${FULL_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
+                ${COLOR}"${PRETTY_NAME}操作系统，没有PowerTools仓库，不用设置！"${END}
             fi
             ;;
         5)
@@ -1469,7 +1462,7 @@ set_ubuntu_apt(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     apt update &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 apt_menu(){
@@ -1588,7 +1581,7 @@ set_debian_apt(){
     sed -ri.bak -e 's/'${OLD_MIRROR}'/'${MIRROR}'/g' -e 's/'${SECURITY_MIRROR}'/'${MIRROR}'/g' -e 's/^(deb cdrom.*)/#\1/g' /etc/apt/sources.list
     ${COLOR}"更新镜像源中，请稍等......"${END}
     apt update &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 debian_menu(){
@@ -1718,13 +1711,13 @@ set_mirror_repository(){
 rocky_almalinux_centos_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
     yum install -y vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip man-pages &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 ubuntu_debian_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
     apt install -y iproute2 ntpdate tcpdump telnet traceroute lrzsz tree iotop unzip zip
-    ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 minimal_install(){
@@ -1737,11 +1730,11 @@ minimal_install(){
 
 disable_firewalls(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
-        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${FULL_NAME}操作系统，iptables防火墙已关闭!"${END}
+        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，iptables防火墙已关闭!"${END}
     elif [ ${MAIN_NAME} == "Ubuntu" ];then
-        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，ufw防火墙已关闭!"${END}; } || ${COLOR}"${FULL_NAME}操作系统， 没有ufw防火墙服务,不用关闭！"${END}
+        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，ufw防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统， 没有ufw防火墙服务,不用关闭！"${END}
     else
-        ${COLOR}"${FULL_NAME}操作系统，没有安装防火墙服务，不用关闭！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，没有安装防火墙服务，不用关闭！"${END}
     fi
 }
 
@@ -1750,18 +1743,18 @@ disable_selinux(){
         if [ `getenforce` == "Enforcing" ];then
             sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
             setenforce 0
-            ${COLOR}"${FULL_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
+            ${COLOR}"${PRETTY_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
         else
-            ${COLOR}"${FULL_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
+            ${COLOR}"${PRETTY_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
         fi
     else
-        ${COLOR}"${FULL_NAME}操作系统，SELinux默认没有安装，不用设置！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，SELinux默认没有安装，不用设置！"${END}
     fi
 }
 
 set_swap(){
     if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${FULL_NAME}操作系统，swap已被禁用，不用设置！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，swap已被禁用，不用设置！"${END}
     else
         if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
             sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
@@ -1769,7 +1762,7 @@ set_swap(){
             sed -ri.bak '/swap/s/(.*)(sw)(.*)/\1\2,noauto\3/g' /etc/fstab
         fi
         swapoff -a
-        ${COLOR}"${FULL_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
     fi
 }
 
@@ -1781,7 +1774,7 @@ set_localtime(){
 LC_TIME=en_DK.UTF-8
 EOF
     fi
-    ${COLOR}"${FULL_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
 }
 
 set_limits(){
@@ -1797,7 +1790,7 @@ root     hard   memlock  32000
 root     soft   msgqueue 8192000
 root     hard   msgqueue 8192000
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，优化资源限制参数成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，优化资源限制参数成功！"${END}
 }
 
 set_kernel(){
@@ -1894,7 +1887,7 @@ net.ipv4.tcp_tw_recycle = 0
 EOF
     fi
     sysctl -p &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，优化内核参数成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，优化内核参数成功！"${END}
 }
 
 optimization_ssh(){
@@ -1910,7 +1903,7 @@ optimization_ssh(){
     else
         systemctl restart sshd
     fi
-    ${COLOR}"${FULL_NAME}操作系统，SSH已优化完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，SSH已优化完成！"${END}
 }
 
 set_ssh_port(){
@@ -1925,7 +1918,7 @@ set_ssh_port(){
     else
         systemctl restart sshd
     fi
-    ${COLOR}"${FULL_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
 
 set_rocky_almalinux_centos_alias(){
@@ -1969,7 +1962,7 @@ EOF
 alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     fi
-    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_ubuntu_alias(){
@@ -1977,7 +1970,7 @@ set_ubuntu_alias(){
 alias cdnet="cd /etc/netplan"
 alias cdapt="cd /etc/apt"
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_debian_alias(){
@@ -1985,7 +1978,7 @@ set_debian_alias(){
 alias cdnet="cd /etc/network"
 alias cdapt="cd /etc/apt"
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_alias(){
@@ -2044,7 +2037,7 @@ func SetTitle()
 endfunc
 autocmd BufNewFile * normal G
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
 }
 
 set_mail(){                                                                                                 
@@ -2065,7 +2058,7 @@ set smtp-auth-password=${AUTH}
 set smtp-auth=login
 set ssl-verify=ignore
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
 }
 
 red(){
@@ -2123,7 +2116,7 @@ set_ps1_env(){
 }
 
 set_ps1(){
-    TIPS="${COLOR}${FULL_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
+    TIPS="${COLOR}${PRETTY_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -2196,7 +2189,7 @@ set_vim_env(){
     else
         set_vim
     fi
-    ${COLOR}"${FULL_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
 }
 
 set_history(){
@@ -2210,7 +2203,7 @@ set_history_env(){
     else
         set_history
     fi
-    ${COLOR}"${FULL_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
 }
 
 disable_restart(){
@@ -2219,7 +2212,7 @@ disable_restart(){
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target
-    ${COLOR}"${FULL_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
 set_ubuntu_debian_root_login(){
@@ -2237,9 +2230,9 @@ set_ubuntu_debian_root_login(){
 ${PASSWORD}
 ${PASSWORD}
 EOF
-        ${COLOR}"${FULL_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
     else
-        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
@@ -2250,16 +2243,16 @@ ubuntu_remove(){
         else
             apt -y purge ufw
         fi
-        ${COLOR}"${FULL_NAME}操作系统，无用软件包卸载完成！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，无用软件包卸载完成！"${END}
     else
-        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
 ubuntu_20_22_24_remove_snap(){
     dpkg -s snapd &> /dev/null
     if [ $? -eq 1 ];then 
-        ${COLOR}"${FULL_NAME}操作系统，snap已卸载！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，snap已卸载！"${END}
     else
         systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service  
         sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
@@ -2277,7 +2270,7 @@ Pin: release a=*
 Pin-Priority: -10
 EOF
         apt update
-        ${COLOR}"${FULL_NAME}操作系统，snap卸载完成！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，snap卸载完成！"${END}
     fi
 }
 
@@ -2286,10 +2279,10 @@ ubuntu_remove_snap(){
         if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
             ubuntu_20_22_24_remove_snap
         else
-           ${COLOR}"${FULL_NAME}操作系统，默认没有安装snap！"${END} 
+           ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装snap！"${END} 
         fi
     else
-        ${COLOR}"${FULL_NAME}操作系统，系统不可用！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，系统不可用！"${END}
     fi
 }
 
@@ -2426,7 +2419,7 @@ main(){
             menu
         fi
     else
-        ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
+        ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
     fi
 }
 

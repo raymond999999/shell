@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-14
+#Date:          2025-09-30
 #FileName:      reset_openeuler.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
@@ -22,18 +22,11 @@ os(){
     else
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
     fi
-    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        FULL_NAME="${PRETTY_NAME}"
-    elif [ ${MAIN_NAME} == "UOS" ];then
-        FULL_NAME="${NAME}"
-    else
-        FULL_NAME="${NAME} ${VERSION_ID}"
-    fi
 }
 
 set_eth(){
     if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${FULL_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q efi;then
@@ -45,7 +38,7 @@ set_eth(){
         ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
         mv /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} /etc/sysconfig/network-scripts/ifcfg-eth0
         sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
-        ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
 	    sleep 10 && shutdown -r now
     fi   
 }
@@ -131,13 +124,13 @@ set_network(){
         set_network_eth0
         set_network_eth1
     fi
-    ${COLOR}"${FULL_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
 }
 
 set_hostname(){
     read -p "请输入主机名: " HOST
     hostnamectl set-hostname ${HOST}
-    ${COLOR}"${FULL_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，主机名设置成功，请重新登录生效！"${END}
 }
 
 aliyun(){
@@ -210,7 +203,7 @@ set_yum(){
     fi
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，镜像源设置完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
 base_menu(){
@@ -311,37 +304,37 @@ EOF
 minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
     yum install -y vim lrzsz tree tmux lsof tcpdump wget net-tools iotop bc bzip2 zip unzip man-pages &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
 disable_firewalls(){
-    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${FULL_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${FULL_NAME}操作系统，iptables防火墙已关闭!"${END}
+    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，iptables防火墙已关闭!"${END}
 }
 
 disable_selinux(){
     if [ `getenforce` == "Enforcing" ];then
         sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
         setenforce 0
-        ${COLOR}"${FULL_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
     else
-        ${COLOR}"${FULL_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
     fi
 }
 
 set_swap(){
     if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${FULL_NAME}操作系统，swap已被禁用，不用设置！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，swap已被禁用，不用设置！"${END}
     else
         sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
         swapoff -a
-        ${COLOR}"${FULL_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
+        ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
     fi
 }
 
 set_localtime(){
     timedatectl set-timezone Asia/Shanghai
     echo 'Asia/Shanghai' >/etc/timezone
-    ${COLOR}"${FULL_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统时区已设置成功，请重启系统后生效！"${END}
 }
 
 set_limits(){
@@ -357,7 +350,7 @@ root     hard   memlock  32000
 root     soft   msgqueue 8192000
 root     hard   msgqueue 8192000
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，优化资源限制参数成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，优化资源限制参数成功！"${END}
 }
 
 set_kernel(){
@@ -454,13 +447,13 @@ net.ipv4.tcp_tw_recycle = 0
 EOF
     fi
     sysctl -p &> /dev/null
-    ${COLOR}"${FULL_NAME}操作系统，优化内核参数成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，优化内核参数成功！"${END}
 }
 
 optimization_ssh(){
     sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     systemctl restart sshd
-    ${COLOR}"${FULL_NAME}操作系统，SSH已优化完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，SSH已优化完成！"${END}
 }
 
 set_ssh_port(){
@@ -469,7 +462,7 @@ set_ssh_port(){
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
 	systemctl restart sshd
-    ${COLOR}"${FULL_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
 
 set_base_alias(){
@@ -496,7 +489,7 @@ EOF
 alias scandisk="echo '- - -' > /sys/class/scsi_host/host0/scan;echo '- - -' > /sys/class/scsi_host/host1/scan;echo '- - -' > /sys/class/scsi_host/host2/scan"
 EOF
     fi
-    ${COLOR}"${FULL_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
 set_alias(){
@@ -539,7 +532,7 @@ func SetTitle()
 endfunc
 autocmd BufNewFile * normal G
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，vimrc设置完成，请重新系统启动才能生效！"${END}
 }
 
 set_mail(){                                                                                                 
@@ -556,7 +549,7 @@ set smtp-auth-password=${AUTH}
 set smtp-auth=login
 set ssl-verify=ignore
 EOF
-    ${COLOR}"${FULL_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，邮件设置完成，请重新登录后才能生效！"${END}
 }
 
 red(){
@@ -601,7 +594,7 @@ set_ps1_env(){
 }
 
 set_ps1(){
-    TIPS="${COLOR}${FULL_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
+    TIPS="${COLOR}${PRETTY_NAME}操作系统，PS1设置成功，请重新登录生效！${END}"
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -674,7 +667,7 @@ set_vim_env(){
     else
         set_vim
     fi
-    ${COLOR}"${FULL_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，默认文本编辑器设置成功，请重新登录生效！"${END}
 }
 
 set_history(){
@@ -688,7 +681,7 @@ set_history_env(){
     else
         set_history
     fi
-    ${COLOR}"${FULL_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，history格式设置成功，请重新登录生效！"${END}
 }
 
 disable_restart(){
@@ -697,7 +690,7 @@ disable_restart(){
         systemctl disable ctrl-alt-del.target
     fi
     systemctl mask ctrl-alt-del.target
-    ${COLOR}"${FULL_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
 menu(){
@@ -807,7 +800,7 @@ main(){
             menu
         fi
     else
-        ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
+        ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
     fi
 }
 

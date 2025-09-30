@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-29
+#Date:          2025-09-30
 #FileName:      install_chrony_client_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The chrony client script install supports 
@@ -25,13 +25,6 @@ os(){
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
     else
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
-    fi
-    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        FULL_NAME="${PRETTY_NAME}"
-    elif [ ${MAIN_NAME} == "UOS" ];then
-        FULL_NAME="${NAME}"
-    else
-        FULL_NAME="${NAME} ${VERSION_ID}"
     fi
 }
 
@@ -61,7 +54,7 @@ install_chrony(){
     fi
     systemctl restart chronyd && systemctl enable --now chronyd &> /dev/null
     systemctl is-active chronyd &> /dev/null ||  { ${COLOR}"chrony 启动失败，退出！"${END} ; exit; }
-    ${COLOR}"${FULL_NAME}操作系统，chrony客户端安装完成！"${END}
+    ${COLOR}"${PRETTY_NAME}操作系统，chrony客户端安装完成！"${END}
 }
 
 main(){
@@ -113,5 +106,5 @@ elif [ ${MAIN_NAME} == 'Debian' ];then
         main
     fi
 else
-    ${COLOR}"此脚本不支持${FULL_NAME}操作系统！"${END}
+    ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
 fi

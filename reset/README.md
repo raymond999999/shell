@@ -42,15 +42,15 @@ Github：https://github.com/raymond999999/shell
 
 **版本支持的操作系统：**
 
-| 版本           | **支持的操作系统**                                           |
-| -------------- | ------------------------------------------------------------ |
-| v10版          | Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11/12/13 |
-| openEuler版    | openEuler 22.03/24.03 LTS                                    |
-| AnolisOS版     | AnolisOS 8/23                                                |
-| OpenCloudOS版  | OpenCloudOS 8/9                                              |
-| openSUSE版     | openSUSE Leap 15                                             |
-| Kylin Server版 | 银河麒麟（Kylin Server） V10/V11                             |
-| UOS Server版   | 统信（UOS Server） V20                                       |
+| 版本           | **支持的操作系统**                                           | 脚本地址                                                     |
+| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| v10版          | Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11/12/13 | https://gitee.com/raymond9/shell/tree/main/reset/reset_v10   |
+| openEuler版    | openEuler 22.03/24.03 LTS                                    | https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler |
+| AnolisOS版     | AnolisOS 8/23                                                | https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos |
+| OpenCloudOS版  | OpenCloudOS 8/9                                              | https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos |
+| openSUSE版     | openSUSE Leap 15                                             | https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse |
+| Kylin Server版 | 银河麒麟（Kylin Server） V10/V11                             | https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server |
+| UOS Server版   | 统信（UOS Server） V20                                       | https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server |
 
 **版本更新日志：**
 
@@ -65,18 +65,15 @@ Github：https://github.com/raymond999999/shell
 |                          | 7.添加了对Rocky Linux 10和AlmaLinux 10系统的支持；           |
 |                          | 8.添加了对Debian 13系统的支持；                              |
 |                          | 9.修改了某些bug；                                            |
-|                          | 10.[reset_v10版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_v10)。 |
 | Uos Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
 |                          | 4.修改了某些bug；                                            |
-|                          | 5.[reset_uos_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server)。 |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
 |                          | 4.添加了对银河麒麟（Kylin Server）V11系统的支持；            |
 |                          | 5.修改了某些bug；                                            |
-|                          | 6.[reset_kylin_server版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server)。 |
 | openSUSE版更新的内容     | 1.添加了对openSUSE Leap 15系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -85,7 +82,6 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 7.修复了设置网络时DNS设置不生效的问题；                      |
 |                          | 8.修改了某些bug；                                            |
-|                          | 9.[reset_opensuse版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse)。 |
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -95,7 +91,6 @@ Github：https://github.com/raymond999999/shell
 |                          | 7.修复了修改网卡名的bug；                                    |
 |                          | 8.添加了启用OpenCloudOS 8 PowerTools仓库的功能；             |
 |                          | 9.修改了某些bug；                                            |
-|                          | 10.[reset_opencloudos版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos)。 |
 | AnolisOS版更新的内容     | 1.添加了对AnolisOS 8和23系统的支持；                         |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -104,7 +99,6 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 7.修复了修改网卡名的bug；                                    |
 |                          | 8.修改了某些bug；                                            |
-|                          | 9.[reset_anolisos版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos)。 |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03/24.03 LTS系统的支持；              |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -112,7 +106,6 @@ Github：https://github.com/raymond999999/shell
 |                          | 5.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 6.修复了修改网卡名的bug；                                    |
 |                          | 7.修改了某些bug；                                            |
-|                          | 8.[reset_openeuler版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler)。 |
 | v9版更新内容             | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                          | 2.添加了对Ubuntu Server 24.04 LTS系统的支持；（Ubuntu Server 24.04 LTS的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                          | 3.添加了对Debian 11和12系统的支持；                          |
@@ -120,7 +113,6 @@ Github：https://github.com/raymond999999/shell
 |                          | 5.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 6.添加了对CentOS Stream 10系统的支持，修复了“禁用SWAP”不生效的问题，CentOS Stream 10系统pcre安装包名改成了pcre2，pcre-devel安装包名改成了pcre2-devel; |
 |                          | 7.修改了某些bug；                                            |
-|                          | 8.[reset_v9版脚本下载](https://gitee.com/raymond9/shell/tree/main/reset/v9)。 |
 | v8版更新内容             | 1.添加了对AlmaLinux 8和9系统的支持；                         |
 |                          | 2.添加Ubuntu卸载snap的功能；                                 |
 |                          | 3.修改了某些bug。                                            |

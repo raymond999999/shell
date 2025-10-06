@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-30
+#Date:          2025-10-04
 #FileName:      install_mysql_8.0_source_v2.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql source script install supports 
@@ -33,19 +33,20 @@ SRC_DIR=/usr/local/src
 INSTALL_DIR=/apps/mysql
 DATA_DIR=/data/mysql
 
+MYSQL_VERSION=8.0.43
 MYSQL_URL='https://cdn.mysql.com//Downloads/MySQL-8.0/'
-MYSQL_FILE='mysql-boost-8.0.42.tar.gz'
+MYSQL_FILE="mysql-boost-${MYSQL_VERSION}.tar.gz"
 
 CMAKE_URL='https://cmake.org/files/v3.31/'
 CMAKE_FILE='cmake-3.31.7-linux-x86_64.tar.gz'
 
 GCC_INSTALL_DIR=/usr
-GCC_URL='https://mirrors.cloud.tencent.com/gnu/gcc/gcc-11.5.0/'
-GCC_FILE='gcc-11.5.0.tar.gz'
+GCC_URL='https://mirrors.cloud.tencent.com/gnu/gcc/gcc-8.5.0/'
+GCC_FILE='gcc-8.5.0.tar.gz'
 GMP_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
 GMP_FILE='gmp-6.1.0.tar.bz2'
 MPFR_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
-MPFR_FILE='mpfr-3.1.6.tar.bz2'
+MPFR_FILE='mpfr-3.1.4.tar.bz2'
 MPC_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
 MPC_FILE='mpc-1.0.3.tar.gz'
 ISL_URL='http://gcc.gnu.org/pub/gcc/infrastructure/'
@@ -79,8 +80,24 @@ check_gcc_file(){
         ${COLOR}"缺少${GCC_FILE}文件！"${END}
         ${COLOR}'开始下载gcc源码包......'${END}
         wget ${GCC_URL}${GCC_FILE} || { ${COLOR}"gcc源码包下载失败！"${END}; exit; }
+    elif [ ! -e ${GMP_FILE} ];then
+        ${COLOR}"缺少${GMP_FILE}文件！"${END}
+        ${COLOR}'开始下载gmp源码包......'${END}
+        wget ${GMP_URL}${GMP_FILE} || { ${COLOR}"gmp源码包下载失败！"${END}; exit; }
+    elif [ ! -e ${MPFR_FILE} ];then
+        ${COLOR}"缺少${MPFR_FILE}文件！"${END}
+        ${COLOR}'开始下载mpfr源码包......'${END}
+        wget ${MPFR_URL}${MPFR_FILE} || { ${COLOR}"mpfr源码包下载失败！"${END}; exit; }
+    elif [ ! -e ${MPC_FILE} ];then
+        ${COLOR}"缺少${MPC_FILE}文件！"${END}
+        ${COLOR}'开始下载mpc源码包......'${END}
+        wget ${MPC_URL}${MPC_FILE} || { ${COLOR}"mpc源码包下载失败！"${END}; exit; }
+    elif [ ! -e ${ISL_FILE} ];then
+        ${COLOR}"缺少${ISL_FILE}文件！"${END}
+        ${COLOR}'开始下载isl源码包......'${END}
+        wget ${ISL_URL}${ISL_FILE} || { ${COLOR}"isl源码包下载失败！"${END}; exit; }
     else
-        ${COLOR}"${GCC_FILE}相关文件已准备好！"${END}
+        ${COLOR}"gcc相关文件已准备好！"${END}
     fi
 }
 
@@ -115,11 +132,8 @@ install_gcc(){
     ${COLOR}'开始编译安装gcc，请稍等......'${END}
     tar xf ${GCC_FILE}
     GCC_DIR=`echo ${GCC_FILE}| sed -nr 's/^(.*[0-9]).*/\1/p'`
+    mv ${GMP_FILE} ${MPFR_FILE} ${MPC_FILE} ${ISL_FILE} ${GCC_DIR}
     cd ${GCC_DIR}
-    wget ${GMP_URL}${GMP_FILE} || { ${COLOR}"gmp源码包下载失败！"${END}; exit; }
-    wget ${MPFR_URL}${MPFR_FILE} || { ${COLOR}"mpfr源码包下载失败！"${END}; exit; }
-    wget ${MPC_URL}${MPC_FILE} || { ${COLOR}"mpc源码包下载失败！"${END}; exit; }
-    wget ${ISL_URL}${ISL_FILE} || { ${COLOR}"isl源码包下载失败！"${END}; exit; }
     ./contrib/download_prerequisites
     mkdir build
     cd build

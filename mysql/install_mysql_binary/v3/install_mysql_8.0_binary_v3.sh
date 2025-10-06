@@ -4,7 +4,7 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-30
+#Date:          2025-10-03
 #FileName:      install_mysql_8.0_binary_v3.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The mysql binary script install supports 
@@ -31,16 +31,17 @@ os(){
 os
 DATA_DIR=/data/mysql
 
-# mysql 8.0.42 glibc2.28包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.0/mysql-8.0.42-linux-glibc2.28-x86_64.tar.xz"
-# mysql 8.0.42 glibc2.17包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.0/mysql-8.0.42-linux-glibc2.17-x86_64.tar.xz"
+# mysql 8.0.43 glibc2.28包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.0/mysql-8.0.43-linux-glibc2.28-x86_64.tar.xz"
+# mysql 8.0.43 glibc2.17包下载地址："https://cdn.mysql.com//Downloads/MySQL-8.0/mysql-8.0.43-linux-glibc2.17-x86_64.tar.xz"
 
+MYSQL_VERSION=8.0.43
 if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
     GLIBC_VERSION=2.17
 else
     GLIBC_VERSION=2.28
 fi
 MYSQL_URL=https://cdn.mysql.com//Downloads/MySQL-8.0/
-MYSQL_FILE="mysql-8.0.42-linux-glibc${GLIBC_VERSION}-x86_64.tar.xz"
+MYSQL_FILE="mysql-${MYSQL_VERSION}-linux-glibc${GLIBC_VERSION}-x86_64.tar.xz"
 
 check_file(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" -o ${MAIN_NAME} == "Anolis" -o ${MAIN_NAME} == "OpenCloudOS" -o ${MAIN_NAME} == "Kylin" ];then

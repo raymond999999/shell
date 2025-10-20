@@ -1,6 +1,6 @@
 # Rocky、AlmaLinux、CentOS、Ubuntu、Debian、openEuler、AnolisOS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（UOS Server）系统初始化脚本
 
-![reset](https://raymond-1302897408.cos.ap-beijing.myqcloud.com/images/blog/reset/20250922121558895.jpg)
+![reset](https://raymond-1302897408.cos.ap-beijing.myqcloud.com/images/blog/reset/20251020182859999.jpg)
 
 **Shell脚本源码地址：**
 
@@ -13,32 +13,32 @@ Github：https://github.com/raymond999999/shell
 
 **支持的功能：**
 
-| **支持的功能**                    | 备注                                                         |
-| --------------------------------- | ------------------------------------------------------------ |
-| 1.修改网卡名                      | openSUSE操作系统默认网卡名就是eth0、eth1不用修改             |
-| 2.设置网络                        | 包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡 |
-| 3.设置主机名                      |                                                              |
-| 4.设置镜像仓库                    | Kylin Server和UOS Server操作系统只有官方镜像仓库，没有合适的第三方镜像仓库，不用设置 |
-| 5.Minimal安装建议安装软件         |                                                              |
-| 6.关闭防火墙                      | Ubuntu操作系统默认安装的防火墙的防火墙是ufw，Debian操作系统默认没有安装防火墙，其它操作系统默认安装的防火墙都是firewall |
-| 7.禁用SELinux                     | Ubuntu、Debian和openSUSE操作系统默认没有安装SELinux，不用设置 |
-| 8.禁用AppArmor                    | 只有openSUSE操作系统默认安装AppArmor，其它操作系统都不用设置 |
-| 9.禁用SWAP                        |                                                              |
-| 10.设置系统时区                   |                                                              |
-| 11.优化资源限制参数               |                                                              |
-| 12.优化内核参数                   |                                                              |
-| 13.优化SSH                        |                                                              |
-| 14.更改SSH端口号                  |                                                              |
-| 15.设置系统别名                   |                                                              |
-| 16.设置vimrc配置文件              |                                                              |
-| 17.安装邮件服务并配置             |                                                              |
-| 18.设置PS1                        |                                                              |
-| 19.设置默认文本编辑器为vim        |                                                              |
-| 20.设置history格式                |                                                              |
-| 21.禁用ctrl+alt+del重启系统功能   |                                                              |
-| 22.Ubuntu和Debian设置root用户登录 | 只支持Ubuntu和Debian操作系统                                 |
-| 23.Ubuntu卸载无用软件包           | 只支持Ubuntu操作系统                                         |
-| 24.Ubuntu卸载snap                 | 只支持Ubuntu操作系统                                         |
+| **支持的功能**                  | 备注                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| 1.设置root用户登录              |                                                              |
+| 2.修改网卡名                    | openSUSE Leap 15操作系统默认网卡名就是eth0、eth1不用修改     |
+| 3.设置网络                      | 包括设置IP地址、子网掩码位数、网关地址和DNS地址，包括单网卡和双网卡 |
+| 4.设置主机名                    |                                                              |
+| 5.设置镜像仓库                  | Kylin Server和UOS Server操作系统只有官方镜像仓库，没有合适的第三方镜像仓库，不用设置 |
+| 6.建议安装软件                  |                                                              |
+| 7.关闭防火墙                    | Ubuntu操作系统默认安装的防火墙的防火墙是ufw，Debian操作系统默认没有安装防火墙，其它操作系统默认安装的防火墙都是firewall |
+| 8.禁用SELinux                   | Ubuntu、Debian和openSUSE Leap 15操作系统默认没有安装SELinux，不用设置 |
+| 9.禁用AppArmor                  | 只有openSUSE Leap 15操作系统默认安装AppArmor，其它操作系统都不用设置 |
+| 10.禁用SWAP                     |                                                              |
+| 11.设置系统时区                 |                                                              |
+| 12.优化资源限制参数             |                                                              |
+| 13.优化内核参数                 |                                                              |
+| 14.优化SSH                      |                                                              |
+| 15.更改SSH端口号                |                                                              |
+| 16.设置系统别名                 |                                                              |
+| 17.设置vimrc配置文件            |                                                              |
+| 18.安装邮件服务并配置           |                                                              |
+| 19.设置PS1                      |                                                              |
+| 20.设置默认文本编辑器为vim      |                                                              |
+| 21.设置history格式              |                                                              |
+| 22.禁用ctrl+alt+del重启系统功能 |                                                              |
+| 23.Ubuntu卸载无用软件包         | 只支持Ubuntu操作系统                                         |
+| 24.Ubuntu卸载snap               | 只支持Ubuntu操作系统                                         |
 
 **版本支持的操作系统：**
 
@@ -48,7 +48,7 @@ Github：https://github.com/raymond999999/shell
 | openEuler版    | openEuler 22.03/24.03 LTS                                    | https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler |
 | AnolisOS版     | AnolisOS 8/23                                                | https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos |
 | OpenCloudOS版  | OpenCloudOS 8/9                                              | https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos |
-| openSUSE版     | openSUSE Leap 15                                             | https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse |
+| openSUSE版     | openSUSE Leap 15/16                                          | https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse |
 | Kylin Server版 | 银河麒麟（Kylin Server） V10/V11                             | https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server |
 | UOS Server版   | 统信（UOS Server） V20                                       | https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server |
 
@@ -64,16 +64,16 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.修复了修改网卡名的bug；                                    |
 |                          | 7.添加了对Rocky Linux 10和AlmaLinux 10系统的支持；           |
 |                          | 8.添加了对Debian 13系统的支持；                              |
-|                          | 9.修改了某些bug；                                            |
+|                          | 9.修改了某些bug。                                            |
 | Uos Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
-|                          | 4.修改了某些bug；                                            |
+|                          | 4.修改了某些bug。                                            |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
 |                          | 4.添加了对银河麒麟（Kylin Server）V11系统的支持；            |
-|                          | 5.修改了某些bug；                                            |
+|                          | 5.修改了某些bug。                                            |
 | openSUSE版更新的内容     | 1.添加了对openSUSE Leap 15系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -81,7 +81,8 @@ Github：https://github.com/raymond999999/shell
 |                          | 5.openSUSE Leap 15系统pcre安装包名改成了pcre-tools，openssl-devel安装包名改成了libopenssl-devel； |
 |                          | 6.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 7.修复了设置网络时DNS设置不生效的问题；                      |
-|                          | 8.修改了某些bug；                                            |
+|                          | 8.添加了对openSUSE Leap 16系统的支持；openSUSE Leap 16需要设置root用户登录，需要修改网卡名，网卡配置文件变成了“/etc/NetworkManager/system-connections/eth0.nmconnection”，ssh服务配置文件变成了“/usr/etc/ssh/sshd_config”； |
+|                          | 9.修改了某些bug。                                            |
 | OpenCloudOS版更新的内容  | 1.添加了对OpenCloudOS 8和9系统的支持；                       |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -90,7 +91,7 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 7.修复了修改网卡名的bug；                                    |
 |                          | 8.添加了启用OpenCloudOS 8 PowerTools仓库的功能；             |
-|                          | 9.修改了某些bug；                                            |
+|                          | 9.修改了某些bug。                                            |
 | AnolisOS版更新的内容     | 1.添加了对AnolisOS 8和23系统的支持；                         |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
@@ -98,21 +99,21 @@ Github：https://github.com/raymond999999/shell
 |                          | 5.由于AnolisOS 23对网卡命名规则进行了更改，使用nmcli命令来修改IP地址的方法不再适用。因此，我们采用了通过配置文件来设置IP地址的方式。同时，对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 6.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 7.修复了修改网卡名的bug；                                    |
-|                          | 8.修改了某些bug；                                            |
+|                          | 8.修改了某些bug。                                            |
 | openEuler版更新的内容    | 1.添加了对openEuler 22.03/24.03 LTS系统的支持；              |
 |                          | 2.修复了“禁用SWAP”不生效的问题；                             |
 |                          | 3.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 4.对单网卡和双网卡的配置进行了统一处理，能够自动识别当前是单网卡还是双网卡环境，并据此进行相应的配置设置； |
 |                          | 5.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 6.修复了修改网卡名的bug；                                    |
-|                          | 7.修改了某些bug；                                            |
+|                          | 7.修改了某些bug。                                            |
 | v9版更新内容             | 1.由于CentOS Stream 8 已于 2024 年 5 月 31 日到期， CentOS Linux 7 的生命周期结束日期是 2024 年 6 月 30 日，将CentOS Stream 8和CentOS 7的镜像仓库都改成了centos-vault仓库；把CentOS 7的epel仓库改成了epel-archive仓库； |
 |                          | 2.添加了对Ubuntu Server 24.04 LTS系统的支持；（Ubuntu Server 24.04 LTS的变更：网卡配置文件变成了“/etc/netplan/50-cloud-init.yaml”，镜像仓库格式变成了DEB822 格式，ssh服务的服务名变成了ssh；） |
 |                          | 3.添加了对Debian 11和12系统的支持；                          |
 |                          | 4.添加了AlmaLinux的devel仓库；                               |
 |                          | 5.修复了“禁用ctrl+alt+del重启系统功能”不生效的问题；         |
 |                          | 6.添加了对CentOS Stream 10系统的支持，修复了“禁用SWAP”不生效的问题，CentOS Stream 10系统pcre安装包名改成了pcre2，pcre-devel安装包名改成了pcre2-devel; |
-|                          | 7.修改了某些bug；                                            |
+|                          | 7.修改了某些bug。                                            |
 | v8版更新内容             | 1.添加了对AlmaLinux 8和9系统的支持；                         |
 |                          | 2.添加Ubuntu卸载snap的功能；                                 |
 |                          | 3.修改了某些bug。                                            |

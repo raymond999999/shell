@@ -4,11 +4,11 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-30
+#Date:          2025-10-20
 #FileName:      reset_v10.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “Rocky Linux 8, 9 and 10, AlmaLinux 8, 9 and 10,
+#               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10,
 #               CentOS 7, CentOS Stream 8, 9 and 10,
 #               Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,
 #               Debian 11 , 12 and 13“ operating systems.
@@ -16,6 +16,7 @@
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
+LOGIN_USER=`whoami`
 
 os(){
     . /etc/os-release
@@ -27,9 +28,34 @@ os(){
     fi
 }
 
+set_root_login(){
+    read -p "请输入密码: " PASSWORD
+    echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 24 ];then
+            sudo systemctl restart ssh
+	    fi
+    else
+        sudo systemctl restart sshd
+    fi
+    sudo -S passwd root <<-EOF
+${PASSWORD}
+${PASSWORD}
+EOF
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 ];then
+            ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新启动系统后生效！"${END}
+        else
+            ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
+        fi
+    else
+        ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
+    fi
+}
+
 set_rocky_almalinux_centos_7_8_eth(){
     sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-    if lsblk | grep -q efi;then
+    if lsblk | grep -q EFI;then
         EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
         grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
     else
@@ -136,10 +162,15 @@ EOF
 }
 
 set_eth(){
-    if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
-        set_rocky_almalinux_centos_eth
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
-        set_ubuntu_debian_eth
+        if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
+            set_rocky_almalinux_centos_eth
+        else
+            set_ubuntu_debian_eth
+        fi
     fi
 }
 
@@ -230,7 +261,6 @@ IPADDR=${IP2}
 PREFIX=${PREFIX2}
 EOF
     else
-        nmcli connection modify "${CONNECTION_NAME2}" con-name ${ETHNAME2}
         cat > /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection <<-EOF
 [connection]
 id=${ETHNAME2}
@@ -922,7 +952,7 @@ set_yum_centos_stream_8(){
     else
         sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'|baseurl=https://'${MIRROR}'|g' /etc/yum.repos.d/CentOS-*.repo
     fi
-    ${COLOR}"更新镜像源中,请稍等..。。。."${END}
+    ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
@@ -1716,7 +1746,12 @@ rocky_almalinux_centos_minimal_install(){
 
 ubuntu_debian_minimal_install(){
     ${COLOR}'开始安装“Minimal安装建议安装软件包”，请稍等......'${END}
-    apt install -y iproute2 ntpdate tcpdump telnet traceroute lrzsz tree iotop unzip zip
+    apt install -y iproute2 tcpdump telnet traceroute lrzsz tree iotop unzip zip
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+        apt install -y ntpdate
+    else
+        apt install -y ntpsec-ntpdate vim
+    fi
     ${COLOR}"${PRETTY_NAME}操作系统，Minimal安装建议安装软件包已安装完成！"${END}
 }
 
@@ -1730,9 +1765,9 @@ minimal_install(){
 
 disable_firewalls(){
     if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
-        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，iptables防火墙已关闭!"${END}
+        rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭！"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装Firewall防火墙服务，不要设置!"${END}
     elif [ ${MAIN_NAME} == "Ubuntu" ];then
-        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，ufw防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统， 没有ufw防火墙服务,不用关闭！"${END}
+        dpkg -s ufw &> /dev/null && { systemctl disable --now ufw &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，ufw防火墙已关闭!"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统， 默认没有ufw防火墙服务,不用关闭！"${END}
     else
         ${COLOR}"${PRETTY_NAME}操作系统，没有安装防火墙服务，不用关闭！"${END}
     fi
@@ -1753,17 +1788,15 @@ disable_selinux(){
 }
 
 set_swap(){
-    if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${PRETTY_NAME}操作系统，swap已被禁用，不用设置！"${END}
-    else
-        if [ ${MAIN_NAME} == "Rocky" -o ${MAIN_NAME} == "AlmaLinux" -o ${MAIN_NAME} == "CentOS" ];then
-            sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
-	    else
-            sed -ri.bak '/swap/s/(.*)(sw)(.*)/\1\2,noauto\3/g' /etc/fstab
-        fi
-        swapoff -a
-        ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
+    if [ ${MAIN_NAME} == "CentOS" -a ${MAIN_VERSION_ID} == 7 ];then
+        sed -ri.bak 's/.*swap.*/#&/' /etc/fstab
+    elif [ ${MAIN_NAME} == "Ubuntu" -a ${MAIN_VERSION_ID} == 18 ];then
+        sed -ri.bak 's/.*swap.*/#&/' /etc/fstab
+	else
+        systemctl mask swap.target &> /dev/null
     fi
+    swapoff -a
+    ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
 }
 
 set_localtime(){
@@ -1896,12 +1929,12 @@ optimization_ssh(){
     else
         sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^#(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     fi
-    if [ ${MAIN_NAME} == "ubuntu" ];then
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${MAIN_VERSION_ID} == 24 ];then
-            systemctl restart ssh
-        fi
+            sudo systemctl restart ssh
+	    fi
     else
-        systemctl restart sshd
+        sudo systemctl restart sshd
     fi
     ${COLOR}"${PRETTY_NAME}操作系统，SSH已优化完成！"${END}
 }
@@ -1911,12 +1944,12 @@ set_ssh_port(){
     disable_firewalls
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
-    if [ ${MAIN_NAME} == "ubuntu" ];then
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${MAIN_VERSION_ID} == 24 ];then
-            systemctl restart ssh
-        fi
+            sudo systemctl restart ssh
+	    fi
     else
-        systemctl restart sshd
+        sudo systemctl restart sshd
     fi
     ${COLOR}"${PRETTY_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
@@ -1970,6 +2003,19 @@ set_ubuntu_alias(){
 alias cdnet="cd /etc/netplan"
 alias cdapt="cd /etc/apt"
 EOF
+    if [ ${MAIN_VERSION_ID} == 18 ];then
+        cat >>~/.bashrc <<-EOF
+alias vie="vim /etc/netplan/01-netcfg.yaml"
+EOF
+    elif [ ${MAIN_VERSION_ID} == 20 ];then
+        cat >>~/.bashrc <<-EOF
+alias vie="vim /etc/netplan/00-installer-config.yaml"
+EOF
+    else
+        cat >>~/.bashrc <<-EOF
+alias vie="vim /etc/netplan/50-cloud-init.yaml"
+EOF
+    fi
     ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
 
@@ -1977,6 +2023,7 @@ set_debian_alias(){
     cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/network"
 alias cdapt="cd /etc/apt"
+alias vie="vim /etc/network/interfaces"
 EOF
     ${COLOR}"${PRETTY_NAME}操作系统，系统别名已设置成功，请重新登陆后生效！"${END}
 }
@@ -1990,15 +2037,15 @@ set_alias(){
             set_rocky_almalinux_centos_alias
         fi
     elif [ ${MAIN_NAME} == "Ubuntu" ];then
-        if grep -Eqi "(.*cdnet|.*cdapt)" ~/.bashrc;then
-            sed -i -e '/.*cdnet/d' -e '/.*cdapt/d' ~/.bashrc
+        if grep -Eqi "(.*cdnet|.*cdapt|.*vie)" ~/.bashrc;then
+            sed -i -e '/.*cdnet/d' -e '/.*cdapt/d' -e '/.*vie/d' ~/.bashrc
             set_ubuntu_alias
         else
             set_ubuntu_alias
         fi
     else
-        if grep -Eqi "(.*cdnet|.*cdapt)" ~/.bashrc;then
-            sed -i -e '/.*cdnet/d' -e '/.*cdapt/d' ~/.bashrc
+        if grep -Eqi "(.*cdnet|.*cdapt|.*vie)" ~/.bashrc;then
+            sed -i -e '/.*cdnet/d' -e '/.*cdapt/d' -e '/.*vie/d' ~/.bashrc
             set_debian_alias
         else
             set_debian_alias
@@ -2209,35 +2256,14 @@ set_history_env(){
 disable_restart(){
     START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
     if [ ${START_STATUS} == "enabled" ];then
-        systemctl disable ctrl-alt-del.target
+        systemctl disable ctrl-alt-del.target &> /dev/null
     fi
-    systemctl mask ctrl-alt-del.target
+    systemctl mask ctrl-alt-del.target &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
-set_ubuntu_debian_root_login(){
-    if [ ${MAIN_NAME} == "Ubuntu" -o ${MAIN_NAME} == "Debian" ];then
-        read -p "请输入密码: " PASSWORD
-        echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
-        if [ ${NAME} == "Ubuntu" ];then
-            if [ ${MAIN_VERSION_ID} == 24 ];then
-                sudo systemctl restart ssh
-	        fi
-        else
-            sudo systemctl restart sshd
-        fi
-        sudo -S passwd root <<-EOF
-${PASSWORD}
-${PASSWORD}
-EOF
-        ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
-    else
-        ${COLOR}"${PRETTY_NAME}操作系统，系统不可用！"${END}
-    fi
-}
-
 ubuntu_remove(){
-    if [ ${MAIN_NAME}} == "Ubuntu" ];then
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
         if [ ${MAIN_VERSION_ID} == 18 ];then
             apt -y purge ufw lxd lxd-client lxcfs liblxc-common
         else
@@ -2250,28 +2276,29 @@ ubuntu_remove(){
 }
 
 ubuntu_20_22_24_remove_snap(){
-    dpkg -s snapd &> /dev/null
-    if [ $? -eq 1 ];then 
-        ${COLOR}"${PRETTY_NAME}操作系统，snap已卸载！"${END}
-    else
-        systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service  
-        sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-        while [ $sum -ne 0 ];do
-            for p in $(snap list | awk 'NR>=2{print $1}'); do
-                snap remove --purge $p
-            done
+    dpkg -s snapd &> /dev/null || { ${COLOR}"snap已卸载！"${END};exit; }
+    systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 ];then
+            snap remove --purge lxd
             sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
-        done
-        apt -y autoremove --purge snapd
-        rm -rf ~/snap && sudo rm -rf /snap && rm -rf /var/snap && rm -rf /var/lib/snapd && rm -rf /var/cache/snapd
-        cat > /etc/apt/preferences.d/no-snapd.pref << EOF
+            while [ $sum -ne 0 ];do
+                for p in $(snap list | awk 'NR>=2{print $1}'); do
+                    snap remove --purge $p
+                done
+                sum=$(snap list | awk 'NR>=2{print $1}' | wc -l)
+            done
+        fi
+    fi
+    apt -y autoremove --purge snapd
+    rm -rf ~/snap && sudo rm -rf /snap && rm -rf /var/snap && rm -rf /var/lib/snapd && rm -rf /var/cache/snapd
+    cat > /etc/apt/preferences.d/no-snapd.pref << EOF
 Package: snapd
 Pin: release a=*
 Pin-Priority: -10
 EOF
-        apt update
-        ${COLOR}"${PRETTY_NAME}操作系统，snap卸载完成！"${END}
-    fi
+    apt update
+    ${COLOR}"${PRETTY_NAME}操作系统，snap卸载完成！"${END}
 }
 
 ubuntu_remove_snap(){
@@ -2290,101 +2317,201 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-*****************************************************************
-*                   系统初始化脚本菜单                          *
-* 1.修改网卡名                14.设置系统别名                   *
-* 2.设置网络                  15.设置vimrc配置文件              *
-* 3.设置主机名                16.安装邮件服务并配置邮件         *
-* 4.设置镜像仓库              17.设置PS1(请进入选择颜色)        *
-* 5.Minimal安装建议安装软件   18.设置默认文本编辑器为vim        *
-* 6.关闭防火墙                19.设置history格式                *
-* 7.禁用SELinux               20.禁用ctrl+alt+del重启系统功能   *
-* 8.禁用SWAP                  21.Ubuntu和Debian设置root用户登录 *
-* 9.设置系统时区              22.Ubuntu卸载无用软件包           *
-* 10.优化资源限制参数         23.Ubuntu卸载snap                 *
-* 11.优化内核参数             24.重启系统                       *
-* 12.优化SSH                  25.关机                           *
-* 13.更改SSH端口号            26.退出                           *
-*****************************************************************
+********************************************************
+*            系统初始化脚本菜单                        *
+* 1.设置root用户登录   14.更改SSH端口号                *
+* 2.修改网卡名         15.设置系统别名                 *
+* 3.设置网络           16.设置vimrc配置文件            *
+* 4.设置主机名         17.安装邮件服务并配置           *
+* 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+* 6.建议安装软件       19.设置默认文本编辑器为vim      *
+* 7.关闭防火墙         20.设置history格式              *
+* 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
+* 9.禁用SWAP           22.Ubuntu卸载无用软件包         *
+* 10.设置系统时区      23.Ubuntu卸载snap               *
+* 11.优化资源限制参数  24.重启系统                     *
+* 12.优化内核参数      25.关机                         *
+* 13.优化SSH           26.退出                         *
+********************************************************
 EOF
         echo -e '\E[0m'
 
         read -p "请选择相应的编号(1-26): " choice
         case ${choice} in
         1)
-            set_eth
+            if [ ${LOGIN_USER} == "root" ];then
+                ${COLOR}"当然登录用户是${LOGIN_USER}，不用设置！"${END}
+            else
+                set_root_login
+            fi
             ;;
         2)
-            set_network
+            if [ ${LOGIN_USER} == "root" ];then
+                set_eth
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         3)
-            set_hostname
+            if [ ${LOGIN_USER} == "root" ];then
+                set_network
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         4)
-            set_mirror_repository
+            if [ ${LOGIN_USER} == "root" ];then
+                set_hostname
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         5)
-            minimal_install
+            if [ ${LOGIN_USER} == "root" ];then
+                set_mirror_repository
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         6)
-            disable_firewalls
+            if [ ${LOGIN_USER} == "root" ];then
+                minimal_install
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         7)
-            disable_selinux
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_firewalls
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         8)
-            set_swap
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_selinux
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         9)
-            set_localtime
+            if [ ${LOGIN_USER} == "root" ];then
+                set_swap
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         10)
-            set_limits
+            if [ ${LOGIN_USER} == "root" ];then
+                set_localtime
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         11)
-            set_kernel
+            if [ ${LOGIN_USER} == "root" ];then
+                set_limits
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         12)
-            optimization_ssh
+            if [ ${LOGIN_USER} == "root" ];then
+                set_kernel
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         13)
-            set_ssh_port
+            if [ ${LOGIN_USER} == "root" ];then
+                optimization_ssh
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         14)
-            set_alias
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ssh_port
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         15)
-            set_vimrc
+            if [ ${LOGIN_USER} == "root" ];then
+                set_alias
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         16)
-            set_mail
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vimrc
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         17)
-            set_ps1
+            if [ ${LOGIN_USER} == "root" ];then
+                set_mail
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         18)
-            set_vim_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ps1
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         19)
-            set_history_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vim_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         20)
-            disable_restart
+            if [ ${LOGIN_USER} == "root" ];then
+                set_history_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         21)
-            set_ubuntu_debian_root_login
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_restart
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         22)
-            ubuntu_remove
+            if [ ${LOGIN_USER} == "root" ];then
+                ubuntu_remove
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         23)
-            ubuntu_remove_snap
+            if [ ${LOGIN_USER} == "root" ];then
+                ubuntu_remove_snap
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         24)
-            sudo shutdown -r now
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -r now
+            else
+                sudo shutdown -r now
+            fi
             ;;
         25)
-            sudo shutdown -h now
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -h now
+            else
+                sudo shutdown -h now
+            fi
             ;;
         26)
             break
@@ -2397,30 +2524,36 @@ EOF
 }
 
 main(){
-    os
-    if [ ${MAIN_NAME} == "Rocky" ];then
-        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
-            menu
-        fi
-    elif [ ${MAIN_NAME} == "AlmaLinux" ];then
-        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
-            menu
-        fi
-    elif [ ${MAIN_NAME} == "CentOS" ];then
-        if [ ${MAIN_VERSION_ID} == 7 -o ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
-            menu
-        fi
-    elif [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
-            menu
-        fi
-    elif [ ${MAIN_NAME} == 'Debian' ];then
-        if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
-            menu
-        fi
+    if [ ${LOGIN_USER} == "root" ];then
+        menu
     else
-        ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+        ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录！"${END}
+        menu
     fi
 }
 
-main
+os
+if [ ${MAIN_NAME} == "Rocky" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "AlmaLinux" ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "CentOS" ];then
+    if [ ${MAIN_VERSION_ID} == 7 -o ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 -o ${MAIN_VERSION_ID} == 10 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == "Ubuntu" ];then
+    if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+        main
+    fi
+elif [ ${MAIN_NAME} == 'Debian' ];then
+    if [ ${MAIN_VERSION_ID} == 11 -o ${MAIN_VERSION_ID} == 12 -o ${MAIN_VERSION_ID} == 13 ];then
+        main
+    fi
+else
+    ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+fi
+

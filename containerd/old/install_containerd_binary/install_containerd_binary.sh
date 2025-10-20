@@ -7,7 +7,7 @@
 #FileName:      install_containerd_binary.sh
 #URL:           raymond.blog.csdn.net
 #Description:   install_containerd_binary for centos 7/8 & ubuntu 18.04/20.04 & Rocky 8
-#Copyright (C): 2021 All rights reserved
+#Copyright (C): 2022 All rights reserved
 #*********************************************************************************************
 SRC_DIR=/usr/local/src
 COLOR="echo -e \\033[01;31m"

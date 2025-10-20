@@ -4,15 +4,16 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-30
+#Date:          2025-10-19
 #FileName:      reset_opensuse.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “openSUSE Leap 15“ operating systems.
+#               “openSUSE Leap 15 and 16“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
+LOGIN_USER=`whoami`
 
 os(){
     . /etc/os-release
@@ -21,6 +22,51 @@ os(){
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="([[:alpha:]]+)(.*)"$@\2@p' /etc/os-release`
     else
         MAIN_VERSION_ID=`sed -rn '/^VERSION_ID=/s@.*="?([0-9]+)\.?.*"?@\1@p' /etc/os-release`
+    fi
+}
+
+set_root_login(){
+    read -p "请输入密码: " PASSWORD
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
+    else
+        echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /usr/etc/ssh/sshd_config
+    fi
+    sudo systemctl restart sshd
+    sudo -S passwd root <<-EOF
+${PASSWORD}
+${PASSWORD}
+EOF
+    ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
+}
+
+set_opensuse_eth(){
+    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+    else
+        sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
+        if lsblk | grep -q EFI;then
+            EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
+            grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
+        else
+            grub2-mkconfig -o /boot/grub2/grub.cfg >& /dev/null
+        fi
+        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+        mv /etc/NetworkManager/system-connections/Wired\ connection\ 1.nmconnection /etc/NetworkManager/system-connections/eth0.nmconnection
+        sed -ri.bak -e 's/Wired\ connection\ 1/eth0/' -e 's/'${ETHNAME}'/eth0/' /etc/NetworkManager/system-connections/eth0.nmconnection
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+        sleep 10 && shutdown -r now
+    fi
+}
+
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
+    else
+        if [ ${MAIN_VERSION_ID} == 16 ];then
+            set_opensuse_eth
+        fi
     fi
 }
 
@@ -64,16 +110,30 @@ set_network_eth0(){
         check_ip ${BACKUP_DNS}
         [ $? -eq 0 ] && break
     done
-    cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        cat > /etc/sysconfig/network/ifcfg-${ETHNAME} <<-EOF
 STARTMODE='auto'
 BOOTPROTO='static'
 IPADDR='${IP}/${PREFIX}'
 EOF
-    touch /etc/sysconfig/network/routes
-    cat > /etc/sysconfig/network/routes  <<-EOF
+        touch /etc/sysconfig/network/routes
+        cat > /etc/sysconfig/network/routes  <<-EOF
 default ${GATEWAY} - -
 EOF
-    sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"'${PRIMARY_DNS}' '${BACKUP_DNS}'"/g' /etc/sysconfig/network/config
+        sed -ri  's/(NETCONFIG_DNS_STATIC_SERVERS=).*/\1"'${PRIMARY_DNS}' '${BACKUP_DNS}'"/g' /etc/sysconfig/network/config
+    else
+        cat > /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME}
+type=ethernet
+interface-name=${ETHNAME}
+
+[ipv4]
+address1=${IP}/${PREFIX},${GATEWAY}
+dns=${PRIMARY_DNS};${BACKUP_DNS};
+method=manual
+EOF
+    fi
 }
 
 set_network_eth1(){
@@ -84,11 +144,25 @@ set_network_eth1(){
         [ $? -eq 0 ] && break
     done
     read -p "请输入子网掩码位数: " PREFIX2
-    cat > /etc/sysconfig/network/ifcfg-${ETHNAME2} <<-EOF
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        cat > /etc/sysconfig/network/ifcfg-${ETHNAME2} <<-EOF
 STARTMODE='auto'
 BOOTPROTO='static'
 IPADDR='${IP2}/${PREFIX2}'
 EOF
+    else
+        cat > /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection <<-EOF
+[connection]
+id=${ETHNAME2}
+type=ethernet
+interface-name=${ETHNAME2}
+
+[ipv4]
+address1=${IP2}/${PREFIX2}
+method=manual
+EOF
+        chmod 600 /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection
+    fi
 }
 
 set_network(){
@@ -173,12 +247,12 @@ iscas(){
 }
 
 set_zypper(){
-    OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/zypp/repos.d/repo-*.repo | head -1)
+    OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/zypp/repos.d/*repo-*.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
     if [ ${OLD_MIRROR_URL} == "opensuse" ];then
-        sed -i.bak 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'/opensuse|g' /etc/zypp/repos.d/repo-*.repo
+        sed -i.bak 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'/opensuse|g' /etc/zypp/repos.d/*repo-*.repo
     else
-        sed -i -e 's|'${OLD_MIRROR}'|'${MIRROR}'|g' /etc/zypp/repos.d/repo-*.repo
+        sed -i -e 's|'${OLD_MIRROR}'|'${MIRROR}'|g' /etc/zypp/repos.d/*repo-*.repo
     fi
     ${COLOR}"更新镜像源中,请稍等..."${END}
     zypper clean &> /dev/null && zypper refresh &> /dev/null
@@ -287,28 +361,45 @@ EOF
 
 minimal_install(){
     ${COLOR}'开始安装“建议安装软件包”，请稍等......'${END}
-    zypper addrepo https://download.opensuse.org/repositories/home:psi-jack/15.6/home:psi-jack.repo &> /dev/null
-    zypper --no-gpg-checks refresh &> /dev/null
-    zypper install -y lrzsz tree tmux tcpdump iotop bc &> /dev/null
+    zypper install -y tree tmux tcpdump iotop bc &> /dev/null
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        zypper addrepo https://download.opensuse.org/repositories/home:psi-jack/15.6/home:psi-jack.repo &> /dev/null
+        zypper --no-gpg-checks refresh &> /dev/null
+        zypper install -y lrzsz &> /dev/null
+    fi
     ${COLOR}"${PRETTY_NAME}操作系统，建议安装软件包已安装完成！"${END}
 }
 
 disable_firewalls(){
-    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭！"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，iptables防火墙已关闭!"${END}
+    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭！"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装Firewall防火墙服务，不要设置!"${END}
+}
+
+disable_selinux(){
+    if [ ${MAIN_VERSION_ID} == 16 ];then
+        if [ `getenforce` == "Enforcing" ];then
+            sed -ri.bak 's/^(SELINUX=).*/\1disabled/' /etc/selinux/config
+            setenforce 0
+            ${COLOR}"${PRETTY_NAME}操作系统，SELinux已禁用，请重新启动系统后才能永久生效！"${END}
+        else
+            ${COLOR}"${PRETTY_NAME}操作系统，SELinux已被禁用，不用设置！"${END}
+        fi
+    else
+        ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装SELinux，不用设置！"${END}
+    fi
 }
 
 disable_apparmor(){
-    systemctl disable --now apparmor &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，AppArmor已禁用！"${END}
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        systemctl disable --now apparmor &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，AppArmor已禁用！"${END}
+    else
+        ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装AppArmor，不用设置！"${END}
+    fi
 }
 
 set_swap(){
-    if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${PRETTY_NAME}操作系统，swap已被禁用，不用设置！"${END}
-    else
-        sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
-        swapoff -a
-        ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
-    fi
+    systemctl mask swap.target &> /dev/null
+    swapoff -a
+    ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
 }
 
 set_localtime(){
@@ -431,16 +522,28 @@ EOF
 }
 
 optimization_ssh(){
-    sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
+    else
+        sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^(GSSAPIAuthentication).*/\1 no/' /usr/etc/ssh/sshd_config
+    fi
     systemctl restart sshd
     ${COLOR}"${PRETTY_NAME}操作系统，SSH已优化完成！"${END}
 }
 
 set_ssh_port(){
-    disable_apparmor
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        disable_apparmor
+    else
+        disable_selinux
+    fi
     disable_firewalls
     read -p "请输入端口号: " PORT
-    sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
+    if [ ${MAIN_VERSION_ID} == 15 ];then
+        sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
+    else
+        sed -i 's/#Port 22/Port '${PORT}'/' /usr/etc/ssh/sshd_config
+    fi
     systemctl restart sshd
     ${COLOR}"${PRETTY_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
@@ -450,18 +553,35 @@ set_base_alias(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
     if [ ${IP_NUM} == "2" ];then
-        cat >>~/.bashrc <<-EOF
+        if [ ${MAIN_VERSION_ID} == "15" ];then
+            cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network"
 alias cdrepo="cd /etc/zypp/repos.d"
 alias vie0="vim /etc/sysconfig/network/ifcfg-${ETHNAME}"
 EOF
+        else
+            cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/NetworkManager/system-connections"
+alias cdrepo="cd /etc/zypp/repos.d"
+alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
+EOF
+        fi
     else	
-        cat >>~/.bashrc <<-EOF
+        if [ -o ${MAIN_VERSION_ID} == "15" ];then
+            cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network"
 alias cdrepo="cd /etc/zypp/repos.d"
 alias vie0="vim /etc/sysconfig/network/ifcfg-${ETHNAME}"
 alias vie1="vim /etc/sysconfig/network/ifcfg-${ETHNAME2}"
 EOF
+        else
+            cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/NetworkManager/system-connections"
+alias cdrepo="cd /etc/zypp/repos.d"
+alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
+alias vie1="vim /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection"
+EOF
+        fi
     fi
     DISK_NAME=`lsblk|awk -F" " '/disk/{printf $1}' | cut -c1-4`
     if [ ${DISK_NAME} == "sda" ];then
@@ -473,9 +593,13 @@ EOF
 }
 
 set_alias(){
-    if grep -Eqi "(.*cdnet|.*cdrepo|.*vie0|.*vie1|.*scandisk)" ~/.bashrc;then
-        sed -i -e '/.*cdnet/d'  -e '/.*cdrepo/d' -e '/.*vie0/d' -e '/.*vie1/d' -e '/.*scandisk/d' ~/.bashrc
-        set_base_alias
+    if [ -a ~/.bashrc ];then
+        if grep -Eqi "(.*cdnet|.*cdrepo|.*vie0|.*vie1|.*scandisk)" ~/.bashrc;then
+            sed -i -e '/.*cdnet/d'  -e '/.*cdrepo/d' -e '/.*vie0/d' -e '/.*vie1/d' -e '/.*scandisk/d' ~/.bashrc
+            set_base_alias
+        else
+            set_base_alias
+        fi
     else
         set_base_alias
     fi
@@ -565,9 +689,13 @@ set_base_ps1(){
 }
 
 set_ps1_env(){
-    if grep -Eqi "^.*PS1" ~/.bashrc;then
-        sed -i '/^.*PS1/d' ~/.bashrc
-        set_base_ps1
+    if [ -a ~/.bashrc ];then
+        if grep -Eqi "^.*PS1" ~/.bashrc;then
+            sed -i '/^.*PS1/d' ~/.bashrc
+            set_base_ps1
+        else
+            set_base_ps1
+        fi
     else
         set_base_ps1
     fi
@@ -641,9 +769,13 @@ set_vim(){
 }
 
 set_vim_env(){
-    if grep -Eqi ".*EDITOR" ~/.bashrc;then
-        sed -i '/.*EDITOR/d' ~/.bashrc
-        set_vim
+    if [ -a ~/.bashrc ];then
+        if grep -Eqi ".*EDITOR" ~/.bashrc;then
+            sed -i '/.*EDITOR/d' ~/.bashrc
+            set_vim
+        else
+            set_vim
+        fi
     else
         set_vim
     fi
@@ -655,9 +787,13 @@ set_history(){
 }
 
 set_history_env(){
-    if grep -Eqi ".*HISTTIMEFORMAT" ~/.bashrc;then
-        sed -i '/.*HISTTIMEFORMAT/d' ~/.bashrc
-        set_history
+    if [ -a ~/.bashrc ];then
+        if grep -Eqi ".*HISTTIMEFORMAT" ~/.bashrc;then
+            sed -i '/.*HISTTIMEFORMAT/d' ~/.bashrc
+            set_history
+        else
+            set_history
+        fi
     else
         set_history
     fi
@@ -667,9 +803,9 @@ set_history_env(){
 disable_restart(){
     START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
     if [ ${START_STATUS} == "enabled" ];then
-        systemctl disable ctrl-alt-del.target
+        systemctl disable ctrl-alt-del.target &> /dev/null
     fi
-    systemctl mask ctrl-alt-del.target
+    systemctl mask ctrl-alt-del.target &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
@@ -677,107 +813,219 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-*******************************************************
-*           系统初始化脚本菜单                        *
-* 1.设置网络          12.更改SSH端口号                *
-* 2.设置主机名        13.设置系统别名                 *
-* 3.设置镜像仓库      14.设置vimrc配置文件            *
-* 4.建议安装软件      15.安装邮件服务并配置邮件       *
-* 5.关闭防火墙        16.设置PS1(请进入选择颜色)      *
-* 6.禁用AppArmor      17.设置默认文本编辑器为vim      *
-* 7.禁用SWAP          18.设置history格式              *
-* 8.设置系统时区      19.禁用ctrl+alt+del重启系统功能 *
-* 9.优化资源限制参数  20.重启系统                     *
-* 10.优化内核参数     21.关机                         *
-* 11.优化SSH          22.退出                         *
-*******************************************************
+********************************************************
+*            系统初始化脚本菜单                        *
+* 1.设置root用户登录   14.优化SSH                      *
+* 2.修改网卡名         15.更改SSH端口号                *
+* 3.设置网络           16.设置系统别名                 *
+* 4.设置主机名         17.设置vimrc配置文件            *
+* 5.设置镜像仓库       18.安装邮件服务并配置           *
+* 6.建议安装软件       19.设置PS1(请进入选择颜色)      *
+* 7.关闭防火墙         20.设置默认文本编辑器为vim      *
+* 8.禁用SELinux        21.设置history格式              *
+* 9.禁用AppArmor       22.禁用ctrl+alt+del重启系统功能 *
+* 10.禁用SWAP          23.重启系统                     *
+* 11.设置系统时区      24.关机                         *
+* 12.优化资源限制参数  25.退出                         *
+* 13.优化内核参数                                      *
+********************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-22): " choice
+        read -p "请选择相应的编号(1-25): " choice
         case ${choice} in
         1)
-            set_network
+            if [ ${LOGIN_USER} == "root" ];then
+                ${COLOR}"当然登录用户是${LOGIN_USER}，不用设置！"${END}
+            else
+                set_root_login
+            fi
             ;;
         2)
-            set_hostname
+            if [ ${LOGIN_USER} == "root" ];then
+                set_eth
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         3)
-            base_menu
+            if [ ${LOGIN_USER} == "root" ];then
+                set_network
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         4)
-            minimal_install
+            if [ ${LOGIN_USER} == "root" ];then
+                set_hostname
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         5)
-            disable_firewalls
+            if [ ${LOGIN_USER} == "root" ];then
+                base_menu
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         6)
-            disable_apparmor
+            if [ ${LOGIN_USER} == "root" ];then
+                minimal_install
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         7)
-            set_swap
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_firewalls
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         8)
-            set_localtime
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_selinux
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         9)
-            set_limits
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_apparmor
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         10)
-            set_kernel
+            if [ ${LOGIN_USER} == "root" ];then
+                set_swap
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         11)
-            optimization_ssh
+            if [ ${LOGIN_USER} == "root" ];then
+                set_localtime
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         12)
-            set_ssh_port
+            if [ ${LOGIN_USER} == "root" ];then
+                set_limits
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         13)
-            set_alias
+            if [ ${LOGIN_USER} == "root" ];then
+                set_kernel
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         14)
-            set_vimrc
+            if [ ${LOGIN_USER} == "root" ];then
+                optimization_ssh
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         15)
-            set_mail
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ssh_port
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         16)
-            set_ps1
+            if [ ${LOGIN_USER} == "root" ];then
+                set_alias
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         17)
-            set_vim_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vimrc
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         18)
-            set_history_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_mail
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         19)
-            disable_restart
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ps1
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         20)
-            reboot
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vim_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         21)
-            shutdown -h now
+            if [ ${LOGIN_USER} == "root" ];then
+                set_history_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         22)
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_restart
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
+            ;;
+        23)
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -r now
+            else
+                sudo shutdown -r now
+            fi
+            ;;
+        24)
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -h now
+            else
+                sudo shutdown -h now
+            fi
+            ;;
+        25)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-22)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-25)！"${END}
             ;;
         esac
     done
 }
 
 main(){
-    os
-    if [ ${MAIN_NAME} == "openSUSE" ];then
-        if [ ${MAIN_VERSION_ID} == 15 ];then
-            menu
-        fi
+    if [ ${LOGIN_USER} == "root" ];then
+        menu
     else
-        ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+        ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录！"${END}
+        menu
     fi
 }
 
-main
+os
+if [ ${MAIN_NAME} == "openSUSE" ];then
+    if [ ${MAIN_VERSION_ID} == 15 -o ${MAIN_VERSION_ID} == 16 ];then
+        main
+    fi
+else
+    ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+fi

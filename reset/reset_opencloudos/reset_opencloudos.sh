@@ -4,15 +4,16 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-09-30
+#Date:          2025-10-19
 #FileName:      reset_opencloudos.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “OpenCloudOS 8 and 9“ operating systems.
+#               “OpencloudOS 8 and 9“ operating systems.
 #Copyright (C): 2025 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
+LOGIN_USER=`whoami`
 
 os(){
     . /etc/os-release
@@ -24,9 +25,20 @@ os(){
     fi
 }
 
+set_root_login(){
+    read -p "请输入密码: " PASSWORD
+    echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+    sudo -S passwd root <<-EOF
+${PASSWORD}
+${PASSWORD}
+EOF
+    ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
+}
+
 set_opencloudos_7_8_eth(){
     sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
-    if lsblk | grep -q efi;then
+    if lsblk | grep -q EFI;then
         EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
         grub2-mkconfig -o /boot/efi/EFI/${EFI_DIR}/grub.cfg >& /dev/null
     else
@@ -65,7 +77,7 @@ Name=eth1
 EOF
 }
 
-set_eth(){
+set_opencloudos_eth(){
     if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
         if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
             ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
@@ -94,6 +106,15 @@ set_eth(){
                 sleep 10 && shutdown -r now
             fi
         fi
+    fi
+}
+
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
+    else
+        set_opencloudos_eth
     fi
 }
 
@@ -138,7 +159,7 @@ set_network_eth0(){
         [ $? -eq 0 ] && break
     done
     if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
-        cat > /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
+        cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} <<-EOF
 NAME=${ETHNAME}
 DEVICE=${ETHNAME}
 ONBOOT=yes
@@ -336,7 +357,7 @@ minimal_install(){
 }
 
 disable_firewalls(){
-    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${NAME}} ${VERSION_ID}操作系统，Firewall防火墙已关闭!"${END}; } || ${COLOR}"${NAME}} ${VERSION_ID}操作系统，iptables防火墙已关闭!"${END}
+    rpm -q firewalld &> /dev/null && { systemctl disable --now firewalld &> /dev/null; ${COLOR}"${PRETTY_NAME}操作系统，Firewall防火墙已关闭！"${END}; } || ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装Firewall防火墙服务，不要设置!"${END}
 }
 
 disable_selinux(){
@@ -350,13 +371,9 @@ disable_selinux(){
 }
 
 set_swap(){
-    if grep -Eqi "noauto" /etc/fstab;then
-        ${COLOR}"${NAME}} ${VERSION_ID}操作系统，swap已被禁用，不用设置！"${END}
-    else
-        sed -ri.bak '/swap/s/(.*)(defaults)(.*)/\1\2,noauto\3/g' /etc/fstab
-        swapoff -a
-        ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
-    fi
+    systemctl mask swap.target &> /dev/null
+    swapoff -a
+    ${COLOR}"${PRETTY_NAME}操作系统，禁用swap已设置成功，请重启系统后生效！"${END}
 }
 
 set_localtime(){
@@ -498,18 +515,35 @@ set_base_alias(){
     ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
     if [ ${IP_NUM} == "2" ];then
-        cat >>~/.bashrc <<-EOF
+        if [ ${MAIN_VERSION_ID} == "8" ];then
+            cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
 alias cdrepo="cd /etc/yum.repos.d"
 alias vie0="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME}"
 EOF
+        else
+            cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/NetworkManager/system-connections"
+alias cdrepo="cd /etc/yum.repos.d"
+alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
+EOF
+        fi
     else	
-        cat >>~/.bashrc <<-EOF
+        if [ -o ${MAIN_VERSION_ID} == "8" ];then
+            cat >>~/.bashrc <<-EOF
 alias cdnet="cd /etc/sysconfig/network-scripts"
 alias cdrepo="cd /etc/yum.repos.d"
 alias vie0="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME}"
 alias vie1="vim /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2}"
 EOF
+        else
+            cat >>~/.bashrc <<-EOF
+alias cdnet="cd /etc/NetworkManager/system-connections"
+alias cdrepo="cd /etc/yum.repos.d"
+alias vie0="vim /etc/NetworkManager/system-connections/${ETHNAME}.nmconnection"
+alias vie1="vim /etc/NetworkManager/system-connections/${ETHNAME2}.nmconnection"
+EOF
+        fi
     fi
     DISK_NAME=`lsblk|awk -F" " '/disk/{printf $1}' | cut -c1-4`
     if [ ${DISK_NAME} == "sda" ];then
@@ -715,9 +749,9 @@ set_history_env(){
 disable_restart(){
     START_STATUS=`systemctl status ctrl-alt-del.target | sed -n '2p' | awk -F"[[:space:]]+|;" '{print $6}'`
     if [ ${START_STATUS} == "enabled" ];then
-        systemctl disable ctrl-alt-del.target
+        systemctl disable ctrl-alt-del.target &> /dev/null
     fi
-    systemctl mask ctrl-alt-del.target
+    systemctl mask ctrl-alt-del.target &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，禁用ctrl+alt+del重启功能设置成功！"${END}
 }
 
@@ -725,111 +759,211 @@ menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
-***************************************************************
-*                   系统初始化脚本菜单                        *
-* 1.修改网卡名                13.更改SSH端口号                *
-* 2.设置网络                  14.设置系统别名                 *
-* 3.设置主机名                15.设置vimrc配置文件            *
-* 4.设置镜像仓库              16.安装邮件服务并配置邮件       *
-* 5.Minimal安装建议安装软件   17.设置PS1(请进入选择颜色)      *
-* 6.关闭防火墙                18.设置默认文本编辑器为vim      *
-* 7.禁用SELinux               19.设置history格式              *
-* 8.禁用SWAP                  20.禁用ctrl+alt+del重启系统功能 *
-* 9.设置系统时区              21.重启系统                     *
-* 10.优化资源限制参数         22.关机                         *
-* 11.优化内核参数             23.退出                         *
-* 12.优化SSH                                                  *
-***************************************************************
+********************************************************
+*            系统初始化脚本菜单                        *
+* 1.设置root用户登录   13.优化SSH                      *
+* 2.修改网卡名         14.更改SSH端口号                *
+* 3.设置网络           15.设置系统别名                 *
+* 4.设置主机名         16.设置vimrc配置文件            *
+* 5.设置镜像仓库       17.安装邮件服务并配置           *
+* 6.建议安装软件       18.设置PS1(请进入选择颜色)      *
+* 7.关闭防火墙         19.设置默认文本编辑器为vim      *
+* 8.禁用SELinux        20.设置history格式              *
+* 9.禁用SWAP           21.禁用ctrl+alt+del重启系统功能 *
+* 10.设置系统时区      22.重启系统                     *
+* 11.优化资源限制参数  23.关机                         *
+* 12.优化内核参数      24.退出                         *
+********************************************************
 EOF
         echo -e '\E[0m'
 
-        read -p "请选择相应的编号(1-23): " choice
+        read -p "请选择相应的编号(1-24): " choice
         case ${choice} in
         1)
-            set_eth
+            if [ ${LOGIN_USER} == "root" ];then
+                ${COLOR}"当然登录用户是${LOGIN_USER}，不用设置！"${END}
+            else
+                set_root_login
+            fi
             ;;
         2)
-            set_network
+            if [ ${LOGIN_USER} == "root" ];then
+                set_eth
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         3)
-            set_hostname
+            if [ ${LOGIN_USER} == "root" ];then
+                set_network
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         4)
-            opencloudos_menu
+            if [ ${LOGIN_USER} == "root" ];then
+                set_hostname
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         5)
-            minimal_install
+            if [ ${LOGIN_USER} == "root" ];then
+                base_menu
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         6)
-            disable_firewalls
+            if [ ${LOGIN_USER} == "root" ];then
+                minimal_install
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         7)
-            disable_selinux
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_firewalls
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         8)
-            set_swap
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_selinux
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         9)
-            set_localtime
+            if [ ${LOGIN_USER} == "root" ];then
+                set_swap
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         10)
-            set_limits
+            if [ ${LOGIN_USER} == "root" ];then
+                set_localtime
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         11)
-            set_kernel
+            if [ ${LOGIN_USER} == "root" ];then
+                set_limits
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         12)
-            optimization_ssh
+            if [ ${LOGIN_USER} == "root" ];then
+                set_kernel
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         13)
-            set_ssh_port
+            if [ ${LOGIN_USER} == "root" ];then
+                optimization_ssh
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         14)
-            set_alias
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ssh_port
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         15)
-            set_vimrc
+            if [ ${LOGIN_USER} == "root" ];then
+                set_alias
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         16)
-            set_mail
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vimrc
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         17)
-            set_ps1
+            if [ ${LOGIN_USER} == "root" ];then
+                set_mail
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         18)
-            set_vim_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_ps1
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         19)
-            set_history_env
+            if [ ${LOGIN_USER} == "root" ];then
+                set_vim_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         20)
-            disable_restart
+            if [ ${LOGIN_USER} == "root" ];then
+                set_history_env
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         21)
-            reboot
+            if [ ${LOGIN_USER} == "root" ];then
+                disable_restart
+            else
+                ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
+            fi
             ;;
         22)
-            shutdown -h now
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -r now
+            else
+                sudo shutdown -r now
+            fi
             ;;
         23)
+            if [ ${LOGIN_USER} == "root" ];then
+                shutdown -h now
+            else
+                sudo shutdown -h now
+            fi
+            ;;
+        24)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-23)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-24)！"${END}
             ;;
         esac
     done
 }
 
 main(){
-    os
-    if [ ${MAIN_NAME} == 'OpenCloudOS' ];then
-        if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
-            menu
-        fi
+    if [ ${LOGIN_USER} == "root" ];then
+        menu
     else
-        ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+        ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录！"${END}
+        menu
     fi
 }
 
-main
+os
+if [ ${MAIN_NAME} == 'OpenCloudOS' ];then
+    if [ ${MAIN_VERSION_ID} == 8 -o ${MAIN_VERSION_ID} == 9 ];then
+        main
+    fi
+else
+    ${COLOR}"此脚本不支持${PRETTY_NAME}操作系统！"${END}
+fi

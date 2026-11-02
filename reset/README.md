@@ -64,8 +64,9 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.修复了修改网卡名的bug；                                    |
 |                          | 7.添加了对Rocky Linux 10和AlmaLinux 10系统的支持；           |
 |                          | 8.添加了对Debian 13系统的支持；                              |
-|                          | 9.添加了对Ubuntu Server 26.04 LTS系统的支持；（Ubuntu Server 26.04 LTS的变更：网卡配置文件变成了“/etc/netplan/00-installer-config.yaml ”；） |
-|                          | 10.修改了某些bug。                                           |
+|                          | 9.添加了对Ubuntu Server 26.04 LTS系统的支持；（Ubuntu Server 26.04 LTS的变更：网卡配置文件变成了“/etc/netplan/00-installer-config.yaml ”）； |
+|                          | 10.由于Debian 11的生命周期结束日期是 **2026 年 8 月 31日**，将Debian 11的镜像仓库都改成了debian-archive仓库； |
+|                          | 11.修改了某些bug。                                           |
 | UOS Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |

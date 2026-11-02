@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-19
+#Date:          2026-11-02
 #FileName:      reset_opensuse.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “openSUSE Leap 15 and 16“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -40,9 +40,10 @@ EOF
     ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
 }
 
-set_opensuse_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q EFI;then
@@ -56,17 +57,6 @@ set_opensuse_eth(){
         sed -ri.bak -e 's/Wired\ connection\ 1/eth0/' -e 's/'${ETHNAME}'/eth0/' /etc/NetworkManager/system-connections/eth0.nmconnection
         ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
         sleep 10 && shutdown -r now
-    fi
-}
-
-set_eth(){
-    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
-    if [ ${ETH_PREFIX_NAME} == "eth" ];then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
-    else
-        if [ ${MAIN_VERSION_ID} == 16 ];then
-            set_opensuse_eth
-        fi
     fi
 }
 
@@ -187,7 +177,7 @@ aliyun(){
 }
 
 huawei(){
-    MIRROR=repo.huaweicloud.com
+    MIRROR=mirrors.huaweicloud.com
 }
 
 tencent(){
@@ -238,10 +228,6 @@ cqupt(){
     MIRROR=mirrors.cqupt.edu.cn
 }
 
-volces(){
-    MIRROR=mirrors.volces.com
-}
-
 iscas(){
     MIRROR=mirror.iscas.ac.cn
 }
@@ -277,13 +263,12 @@ base_menu(){
 12)浙江大学镜像源
 13)兰州大学镜像源
 14)重庆邮电大学镜像源
-15)火山引擎镜像源
-16)中国科学院软件研究所镜像源
-17)退出
+15)中国科学院软件研究所镜像源
+16)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-17): " NUM
+        read -p "请输入镜像源编号(1-16): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -342,18 +327,14 @@ EOF
             set_zypper
             ;;
         15)
-            volces
-            set_zypper
-            ;;
-        16)
             iscas
             set_zypper
             ;;
-        17)
+        16)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-16)！"${END}
             ;;
         esac
     done
@@ -820,7 +801,7 @@ menu(){
 * 3.设置网络           16.设置系统别名                 *
 * 4.设置主机名         17.设置vimrc配置文件            *
 * 5.设置镜像仓库       18.安装邮件服务并配置           *
-* 6.建议安装软件       19.设置PS1(请进入选择颜色)      *
+* 6.建议安装软件       19.设置PS1                      *
 * 7.关闭防火墙         20.设置默认文本编辑器为vim      *
 * 8.禁用SELinux        21.设置history格式              *
 * 9.禁用AppArmor       22.禁用ctrl+alt+del重启系统功能 *

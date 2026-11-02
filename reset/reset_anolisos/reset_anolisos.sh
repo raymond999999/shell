@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-19
+#Date:          2026-11-02
 #FileName:      reset_anolisos.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “AnolisOS 8 and 23“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -92,57 +92,31 @@ Name=eth1
 EOF
 }
 
-set_anolisos_eth(){
-    IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
-    if [ ${MAIN_VERSION_ID} == "8" ];then
-        if [ ${IP_NUM} == "2" ];then
-            if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-               ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_anolis_8_eth
-                set_anolis_8_eth0
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        else
-            if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-               ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_anolis_8_eth
-                set_anolis_8_eth0
-                set_anolis_8_eth1
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        fi
-    else
-        if [ ${IP_NUM} == "2" ];then
-		    if [ -f /etc/systemd/network/70-eth0.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_anolis_23_eth0
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        else
-            if [ -f /etc/systemd/network/70-eth0.link -a -f /etc/systemd/network/70-eth1.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_anolis_23_eth0
-                set_anolis_23_eth1
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        fi
-    fi
-}
-
 set_eth(){
     ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
     if [ ${ETH_PREFIX_NAME} == "eth" ];then
         ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
-        set_anolisos_eth
+        IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+        if [ ${MAIN_VERSION_ID} == "8" ];then
+            if [ ${IP_NUM} == "2" ];then
+                set_anolis_8_eth
+                set_anolis_8_eth0
+            else
+                set_anolis_8_eth
+                set_anolis_8_eth0
+                set_anolis_8_eth1
+            fi
+        else
+            if [ ${IP_NUM} == "2" ];then
+                set_anolis_23_eth0
+            else
+                set_anolis_23_eth0
+                set_anolis_23_eth1
+            fi
+        fi
+	    ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
+        sleep 10 && shutdown -r now
     fi
 }
 
@@ -272,27 +246,13 @@ nju(){
     MIRROR=mirrors.nju.edu.cn
 }
 
-iscas(){
-    MIRROR=mirror.iscas.ac.cn
+zju(){
+    MIRROR=mirrors.zju.edu.cn
 }
 
 set_yum(){
-    MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/AnolisOS*.repo | head -1)
-    OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/AnolisOS*.repo | head -1)
-    if [ ${MIRROR_URL} == "iscas" ];then
-        if [ ${OLD_DIR} == 'anolis' ];then
-            sed -i.bak -e 's|http.*://'${OLD_MIRROR}'/anolis|https://'${MIRROR}'/openanolis|g' /etc/yum.repos.d/AnolisOS*.repo
-        else
-            sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/openanolis|baseurl=https://'${MIRROR}'/openanolis|g' /etc/yum.repos.d/AnolisOS*.repo
-        fi
-    else
-        if [ ${OLD_DIR} == 'anolis' ];then
-            sed -i.bak -e 's|http.*://'${OLD_MIRROR}'/anolis|https://'${MIRROR}'/anolis|g' /etc/yum.repos.d/AnolisOS*.repo
-        else
-            sed -i -e 's|^baseurl=https://'${OLD_MIRROR}'/openanolis|baseurl=https://'${MIRROR}'/anolis|g' /etc/yum.repos.d/AnolisOS*.repo
-        fi
-    fi
+    sed -i.bak -e 's|http.*://'${OLD_MIRROR}'|https://'${MIRROR}'|g' /etc/yum.repos.d/AnolisOS*.repo
     ${COLOR}"更新镜像源中，请稍等......"${END}
     dnf clean all &> /dev/null && dnf makecache &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
@@ -304,7 +264,7 @@ base_menu(){
         cat <<-EOF
 1)阿里镜像源
 2)南京大学镜像源
-3)中国科学院软件研究所镜像源
+3)浙江大学镜像源
 4)退出
 EOF
         echo -e '\E[0m'
@@ -320,7 +280,7 @@ EOF
             set_yum
             ;;
         3)
-            iscas
+            zju
             set_yum
             ;;
         4)
@@ -752,7 +712,7 @@ menu(){
 * 3.设置网络           15.设置系统别名                 *
 * 4.设置主机名         16.设置vimrc配置文件            *
 * 5.设置镜像仓库       17.安装邮件服务并配置           *
-* 6.建议安装软件       18.设置PS1(请进入选择颜色)      *
+* 6.建议安装软件       18.设置PS1                      *
 * 7.关闭防火墙         19.设置默认文本编辑器为vim      *
 * 8.禁用SELinux        20.设置history格式              *
 * 9.禁用SWAP           21.禁用ctrl+alt+del重启系统功能 *

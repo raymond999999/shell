@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-19
+#Date:          2026-11-02
 #FileName:      reset_uos_server.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
-#               “UOS Server v20“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#               “UOS Server v20 and V25“ operating systems.
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -36,9 +36,10 @@ EOF
     ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
 }
 
-set_uos_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q EFI;then
@@ -52,15 +53,6 @@ set_uos_eth(){
         sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
         ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
         sleep 10 && shutdown -r now
-    fi
-}
-
-set_eth(){
-    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
-    if [ ${ETH_PREFIX_NAME} == "eth" ];then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
-    else
-        set_uos_eth
     fi
 }
 
@@ -79,6 +71,62 @@ check_ip(){
         echo "IP format error!"
         return 1
     fi
+}
+
+set_network_eth0(){
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    while true; do
+        read -p "请输入IP地址: " IP
+        check_ip ${IP}
+        [ $? -eq 0 ] && break
+    done
+    read -p "请输入子网掩码位数: " PREFIX
+    while true; do
+        read -p "请输入网关地址: " GATEWAY
+        check_ip ${GATEWAY}
+        [ $? -eq 0 ] && break
+    done
+    while true; do
+        read -p "请输入主DNS地址（例如：阿里：223.5.5.5，腾讯：119.29.29.29，公共：114.114.114.114，google：8.8.8.8等）: " PRIMARY_DNS
+        check_ip ${PRIMARY_DNS}
+        [ $? -eq 0 ] && break
+    done
+    while true; do
+        read -p "请输入备用DNS地址（例如：阿里：223.6.6.6，腾讯：119.28.28.28，公共：114.114.115.115，google：8.8.4.4等）: " BACKUP_DNS
+        check_ip ${BACKUP_DNS}
+        [ $? -eq 0 ] && break
+    done
+    cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME} <<-EOF
+NAME=${ETHNAME}
+DEVICE=${ETHNAME}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP}
+PREFIX=${PREFIX}
+GATEWAY=${GATEWAY}
+DNS1=${PRIMARY_DNS}
+DNS2=${BACKUP_DNS}
+EOF
+}
+
+set_network_eth1(){
+    ETHNAME2=`ip addr | awk -F"[ :]" '/^3/{print $3}'`
+    while true; do
+        read -p "请输入第二块网卡IP地址: " IP2
+        check_ip ${IP2}
+        [ $? -eq 0 ] && break
+    done
+    read -p "请输入子网掩码位数: " PREFIX2
+    cat > /etc/sysconfig/network-scripts/ifcfg-${ETHNAME2} <<-EOF
+NAME=${ETHNAME2}
+DEVICE=${ETHNAME2}
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+IPADDR=${IP2}
+PREFIX=${PREFIX2}
+EOF
 }
 
 set_single_network(){
@@ -173,13 +221,23 @@ EOF
 
 set_network(){
     IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
-    if [ ${IP_NUM} == "2" ];then
-        set_single_network
+    if [ ${MAIN_VERSION_ID} == 20 ];then
+        if [ ${IP_NUM} == "2" ];then
+            set_single_network
+        else
+            set_dual_network
+        fi
+        ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
+	    sleep 10 && shutdown -r now
     else
-        set_dual_network
+        if [ ${IP_NUM} == "2" ];then
+            set_network_eth0
+        else
+            set_network_eth0
+            set_network_eth1
+        fi
+        ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，请重新启动系统后生效！"${END}
     fi
-    ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
-	sleep 10 && shutdown -r now
 }
 
 set_hostname(){
@@ -586,7 +644,7 @@ menu(){
 * 2.修改网卡名         14.设置系统别名                 *
 * 3.设置网络           15.设置vimrc配置文件            *
 * 4.设置主机名         16.安装邮件服务并配置           *
-* 5.建议安装软件       17.设置PS1(请进入选择颜色)      *
+* 5.建议安装软件       17.设置PS1                      *
 * 6.关闭防火墙         18.设置默认文本编辑器为vim      *
 * 7.禁用SELinux        19.设置history格式              *
 * 8.禁用SWAP           20.禁用ctrl+alt+del重启系统功能 *
@@ -775,7 +833,7 @@ main(){
 
 os
 if [ ${MAIN_NAME} == "UOS" ];then
-    if [ ${MAIN_VERSION_ID} == 20 ];then
+    if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 25 ];then
         main
     fi
 else

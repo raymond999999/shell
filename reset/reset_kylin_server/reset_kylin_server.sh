@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-19
+#Date:          2026-11-02
 #FileName:      reset_kylin_server.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “Kylin Server v10 and v11“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -36,9 +36,10 @@ EOF
     ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
 }
 
-set_kylin_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q EFI;then
@@ -52,15 +53,6 @@ set_kylin_eth(){
         sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
         ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
         sleep 10 && shutdown -r now
-    fi
-}
-
-set_eth(){
-    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
-    if [ ${ETH_PREFIX_NAME} == "eth" ];then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
-    else
-        set_kylin_eth
     fi
 }
 
@@ -652,7 +644,7 @@ menu(){
 * 2.修改网卡名         14.设置系统别名                 *
 * 3.设置网络           15.设置vimrc配置文件            *
 * 4.设置主机名         16.安装邮件服务并配置           *
-* 5.建议安装软件       17.设置PS1(请进入选择颜色)      *
+* 5.建议安装软件       17.设置PS1                      *
 * 6.关闭防火墙         18.设置默认文本编辑器为vim      *
 * 7.禁用SELinux        19.设置history格式              *
 * 8.禁用SWAP           20.禁用ctrl+alt+del重启系统功能 *

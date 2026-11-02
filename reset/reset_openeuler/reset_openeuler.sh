@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-18
+#Date:          2026-11-02
 #FileName:      reset_openeuler.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “openEuler 22.03 and 24.03 LTS“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -36,9 +36,10 @@ EOF
     ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
 }
 
-set_openeuler_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
+set_eth(){
+    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
+    if [ ${ETH_PREFIX_NAME} == "eth" ];then
+        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@ net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q EFI;then
@@ -52,15 +53,6 @@ set_openeuler_eth(){
         sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/sysconfig/network-scripts/ifcfg-eth0
         ${COLOR}"${PRETTY_NAME}操作系统，网络已设置成功，10秒后，机器会自动重启！"${END}
 	    sleep 10 && shutdown -r now
-    fi   
-}
-
-set_eth(){
-    ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
-    if [ ${ETH_PREFIX_NAME} == "eth" ];then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
-    else
-        set_openeuler_eth
     fi
 }
 
@@ -159,7 +151,7 @@ aliyun(){
 }
 
 huawei(){
-    MIRROR=repo.huaweicloud.com
+    MIRROR=mirrors.huaweicloud.com
 }
 
 tencent(){
@@ -182,10 +174,6 @@ ustc(){
     MIRROR=mirrors.ustc.edu.cn
 }
 
-sjtu(){
-    MIRROR=mirrors.sjtug.sjtu.edu.cn
-}
-
 xjtu(){
     MIRROR=mirrors.xjtu.edu.cn
 }
@@ -194,20 +182,12 @@ pku(){
     MIRROR=mirrors.pku.edu.cn
 }
 
-zju(){
-    MIRROR=mirrors.zju.edu.cn
-}
-
 lzu(){
     MIRROR=mirror.lzu.edu.cn
 }
 
 cqupt(){
     MIRROR=mirrors.cqupt.edu.cn
-}
-
-volces(){
-    MIRROR=mirrors.volces.com
 }
 
 iscas(){
@@ -238,19 +218,16 @@ base_menu(){
 5)网易镜像源
 6)南京大学镜像源
 7)中国科学技术大学镜像源
-8)上海交通大学镜像源
-9)西安交通大学镜像源
-10)北京大学镜像源
-11)浙江大学镜像源
-12)兰州大学镜像源
-13)重庆邮电大学镜像源
-14)火山引擎镜像源
-15)中国科学院软件研究所镜像源
-16)退出
+8)西安交通大学镜像源
+9)北京大学镜像源
+10)兰州大学镜像源
+11)重庆邮电大学镜像源
+12)中国科学院软件研究所镜像源
+13)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-16): " NUM
+        read -p "请输入镜像源编号(1-13): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -281,42 +258,30 @@ EOF
             set_yum
             ;;
         8)
-            sjtu
-            set_yum
-            ;;
-        9)
             xjtu
             set_yum
             ;;
-        10)
+        9)
             pku
             set_yum
             ;;
-        11)
-            zju
-            set_yum
-            ;;
-        12)
+        10)
             lzu
             set_yum
             ;;
-        13)
+        11)
             cqupt
             set_yum
             ;;
-        14)
-            volces
-            set_yum
-            ;;
-        15)
+        12)
             iscas
             set_yum
             ;;
-        16)
+        13)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-16)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-13)！"${END}
             ;;
         esac
     done
@@ -721,7 +686,7 @@ menu(){
 * 3.设置网络           15.设置系统别名                 *
 * 4.设置主机名         16.设置vimrc配置文件            *
 * 5.设置镜像仓库       17.安装邮件服务并配置           *
-* 6.建议安装软件       18.设置PS1(请进入选择颜色)      *
+* 6.建议安装软件       18.设置PS1                      *
 * 7.关闭防火墙         19.设置默认文本编辑器为vim      *
 * 8.禁用SELinux        20.设置history格式              *
 * 9.禁用SWAP           21.禁用ctrl+alt+del重启系统功能 *

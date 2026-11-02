@@ -4,12 +4,12 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-19
+#Date:          2026-11-02
 #FileName:      reset_opencloudos.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “OpencloudOS 8 and 9“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -77,44 +77,24 @@ Name=eth1
 EOF
 }
 
-set_opencloudos_eth(){
-    if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
-        if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-            ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-        else
-            set_opencloudos_7_8_eth
-	        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-            sleep 10 && shutdown -r now
-        fi
-    else
-        IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
-        if [ ${IP_NUM} == "2" ];then
-            if [ -f /etc/systemd/network/70-eth0.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_opencloudos_9_eth0
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        else
-            if [ -f /etc/systemd/network/70-eth0.link -a -f /etc/systemd/network/70-eth1.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_opencloudos_9_eth0
-                set_opencloudos_9_eth1
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
-        fi
-    fi
-}
-
 set_eth(){
     ETH_PREFIX_NAME=`ip addr | awk -F"[ :]" '/^2/{print $3}' | tr -d "[:digit:]"`
     if [ ${ETH_PREFIX_NAME} == "eth" ];then
         ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改，不用设置！"${END}
     else
-        set_opencloudos_eth
+        if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
+            set_opencloudos_7_8_eth
+        else
+            IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
+            if [ ${IP_NUM} == "2" ];then
+                set_opencloudos_9_eth0
+            else
+                set_opencloudos_9_eth0
+                set_opencloudos_9_eth1
+            fi
+        fi
+	    ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+        sleep 10 && shutdown -r now
     fi
 }
 
@@ -254,10 +234,6 @@ sjtu(){
     MIRROR=mirrors.sjtug.sjtu.edu.cn
 }
 
-iscas(){
-    MIRROR=mirror.iscas.ac.cn
-}
-
 set_yum(){
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/OpenCloudOS*.repo | head -1)
     OLD_MIRROR_URL=`echo ${OLD_MIRROR} | awk -F"." '{print $2}'`
@@ -278,12 +254,11 @@ base_menu(){
 1)腾讯镜像源
 2)南京大学镜像源
 3)上海交通大学镜像源
-4)中国科学院软件研究所镜像源
-5)退出
+4)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-5): " NUM
+        read -p "请输入镜像源编号(1-4): " NUM
         case ${NUM} in
         1)
             tencent
@@ -298,14 +273,10 @@ EOF
             set_yum
             ;;
         4)
-            sjtu
-            set_yum
-            ;;
-        5)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-5)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-4)！"${END}
             ;;
         esac
     done
@@ -766,7 +737,7 @@ menu(){
 * 3.设置网络           15.设置系统别名                 *
 * 4.设置主机名         16.设置vimrc配置文件            *
 * 5.设置镜像仓库       17.安装邮件服务并配置           *
-* 6.建议安装软件       18.设置PS1(请进入选择颜色)      *
+* 6.建议安装软件       18.设置PS1                      *
 * 7.关闭防火墙         19.设置默认文本编辑器为vim      *
 * 8.禁用SELinux        20.设置history格式              *
 * 9.禁用SWAP           21.禁用ctrl+alt+del重启系统功能 *
@@ -809,7 +780,7 @@ EOF
             ;;
         5)
             if [ ${LOGIN_USER} == "root" ];then
-                base_menu
+                opencloudos_menu
             else
                 ${COLOR}"当然登录用户是${LOGIN_USER}，请使用root用户登录或设置root用户登录后再执行此操作！"${END}
             fi

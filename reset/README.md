@@ -1,6 +1,6 @@
-# Rocky、AlmaLinux、CentOS、Ubuntu、Debian、openEuler、AnolisOS、OpenCloudOS、openSUSE、银河麒麟（Kylin Server）和统信（UOS Server）系统初始化脚本
+# Linux系统初始化脚本
 
-![reset](https://raymond-1302897408.cos.ap-beijing.myqcloud.com/images/blog/reset/20251020182859999.jpg)
+![reset](https://raymond-1302897408.cos.ap-beijing.myqcloud.com/images/book/20261102133307153.jpg)
 
 **Shell脚本源码地址：**
 
@@ -44,13 +44,13 @@ Github：https://github.com/raymond999999/shell
 
 | 版本           | **支持的操作系统**                                           | 脚本地址                                                     |
 | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| v10版          | Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04 LTS、Debian 11/12/13 | https://gitee.com/raymond9/shell/tree/main/reset/reset_v10   |
+| v10版          | Rocky Linux 8/9/10、AlmaLinux 8/9/10、CentOS 7、CentOS Stream 8/9/10、Ubuntu Server 18.04/20.04/22.04/24.04/26.04 LTS、Debian 11/12/13 | https://gitee.com/raymond9/shell/tree/main/reset/reset_v10   |
 | openEuler版    | openEuler 22.03/24.03 LTS                                    | https://gitee.com/raymond9/shell/tree/main/reset/reset_openeuler |
 | AnolisOS版     | AnolisOS 8/23                                                | https://gitee.com/raymond9/shell/tree/main/reset/reset_anolisos |
 | OpenCloudOS版  | OpenCloudOS 8/9                                              | https://gitee.com/raymond9/shell/tree/main/reset/reset_opencloudos |
 | openSUSE版     | openSUSE Leap 15/16                                          | https://gitee.com/raymond9/shell/tree/main/reset/reset_opensuse |
 | Kylin Server版 | 银河麒麟（Kylin Server） V10/V11                             | https://gitee.com/raymond9/shell/tree/main/reset/reset_kylin_server |
-| UOS Server版   | 统信（UOS Server） V20                                       | https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server |
+| UOS Server版   | 统信（UOS Server） V20/V25                                   | https://gitee.com/raymond9/shell/tree/main/reset/reset_uos_server |
 
 **版本更新日志：**
 
@@ -64,11 +64,13 @@ Github：https://github.com/raymond999999/shell
 |                          | 6.修复了修改网卡名的bug；                                    |
 |                          | 7.添加了对Rocky Linux 10和AlmaLinux 10系统的支持；           |
 |                          | 8.添加了对Debian 13系统的支持；                              |
-|                          | 9.修改了某些bug。                                            |
-| Uos Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
+|                          | 9.添加了对Ubuntu Server 26.04 LTS系统的支持；（Ubuntu Server 26.04 LTS的变更：网卡配置文件变成了“/etc/netplan/00-installer-config.yaml ”；） |
+|                          | 10.修改了某些bug。                                           |
+| UOS Server版更新的内容   | 1.添加了对统信（UOS Server）V20系统的支持；                  |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
-|                          | 4.修改了某些bug。                                            |
+|                          | 4.添加了对统信（UOS Server）V25系统的支持；                  |
+|                          | 5.修改了某些bug。                                            |
 | Kylin Server版更新的内容 | 1.添加了对银河麒麟（Kylin Server）V10系统的支持；            |
 |                          | 2.通过修改GRUB配置文件来修改网卡名时，如果是UEFI引导系统，“grub.cfg”文件位置发生了改变，添加了相关功能； |
 |                          | 3.修复了修改网卡名的bug；                                    |
@@ -145,15 +147,17 @@ Github：https://github.com/raymond999999/shell
 
    ```bash
    # Rocky、Almalinux、CentOS、openEuler、AnolisOS、OpencloudOS、openSUSE Leap 15、银河麒麟（Kylin Server）和统信（UOS Server）可以使用root用户登录不用设置，Ubuntu、Debian和openSUSE Leap 16必须先设置root用户登录。
-   # 先安装lrzsz工具，把脚本传上去
+   # 先安装lrzsz工具
    raymond@ubuntu2404:~$ sudo apt -y install lrzsz
+   
+   # 把脚本文件上传到服务器
    raymond@ubuntu2404:~$ rz -E
    rz waiting to receive.
    raymond@ubuntu2404:~$ ls
    reset_v10.sh
    
    # 使用bash命令运行脚本
-   raymond@ubuntu2404:~$ bash reset_v10.sh 
+   raymond@ubuntu2604:~$ bash reset_v10.sh 
    当然登录用户是raymond，请使用root用户登录或设置root用户登录！
    
    ********************************************************
@@ -162,7 +166,7 @@ Github：https://github.com/raymond999999/shell
    * 2.修改网卡名         15.设置系统别名                 *
    * 3.设置网络           16.设置vimrc配置文件            *
    * 4.设置主机名         17.安装邮件服务并配置           *
-   * 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+   * 5.设置镜像仓库       18.设置PS1                      *
    * 6.建议安装软件       19.设置默认文本编辑器为vim      *
    * 7.关闭防火墙         20.设置history格式              *
    * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
@@ -173,10 +177,11 @@ Github：https://github.com/raymond999999/shell
    * 13.优化SSH           26.退出                         *
    ********************************************************
    
-   请选择相应的编号(1-26): 1 # 输入21，设置root用户登录
+   请选择相应的编号(1-26): 1 # 输入1，设置root用户登录
    请输入密码: 123456 # 输入密码
+   [sudo: authenticate] Password: 
    New password: Retype new password: passwd: password updated successfully
-   Ubuntu 24.04.3 LTS操作系统，root用户登录已设置完成，请重新登录后生效！
+   Ubuntu 26.04.1 LTS操作系统，root用户登录已设置完成，请重新登录后生效！
    
    ********************************************************
    *            系统初始化脚本菜单                        *
@@ -184,7 +189,7 @@ Github：https://github.com/raymond999999/shell
    * 2.修改网卡名         15.设置系统别名                 *
    * 3.设置网络           16.设置vimrc配置文件            *
    * 4.设置主机名         17.安装邮件服务并配置           *
-   * 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+   * 5.设置镜像仓库       18.设置PS1                      *
    * 6.建议安装软件       19.设置默认文本编辑器为vim      *
    * 7.关闭防火墙         20.设置history格式              *
    * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
@@ -201,14 +206,16 @@ Github：https://github.com/raymond999999/shell
    [C:\~]$ ssh 10.0.15.15
    
    # 把脚本从普通用户家目录移到root用户家目录，再继续后面步骤。
-   root@ubuntu2404:~# mv /home/raymond/reset_v10.sh .
+   root@ubuntu2604:~# mv /home/raymond/reset_v10.sh .
    ```
 
 2. CentOS Stream 9和10修改镜像源需要注意的地方。
 
    ```bash
-   # 先安装lrzsz工具，把脚本传上去
+   # 先安装lrzsz工具
    [root@centos10 ~]# dnf install -y lrzsz
+   
+   # 把脚本文件上传到服务器
    [root@centos10 ~]# rz -E
    rz waiting to receive.
    [root@centos10 ~]# ls
@@ -222,7 +229,7 @@ Github：https://github.com/raymond999999/shell
    * 2.修改网卡名         15.设置系统别名                 *
    * 3.设置网络           16.设置vimrc配置文件            *
    * 4.设置主机名         17.安装邮件服务并配置           *
-   * 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+   * 5.设置镜像仓库       18.设置PS1                      *
    * 6.建议安装软件       19.设置默认文本编辑器为vim      *
    * 7.关闭防火墙         20.设置history格式              *
    * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
@@ -233,7 +240,7 @@ Github：https://github.com/raymond999999/shell
    * 13.优化SSH           26.退出                         *
    ********************************************************
    
-   请选择相应的编号(1-26): 5
+   请选择相应的编号(1-26): 5 # 输入5，设置镜像仓库
    
    1)base仓库
    2)epel仓库
@@ -245,6 +252,7 @@ Github：https://github.com/raymond999999/shell
    由于CentOS Stream 10 (Coughlan)操作系统，系统默认镜像源是Perl语言实现的，在更改镜像源之前先确保把'update_mirror.pl'文件和reset脚本放在同一个目录下，否则后面程序会退出，默认的CentOS Stream 10 (Coughlan)操作系统，镜像源设置的是阿里云，要修改镜像源，请去'update_mirror.pl'文件里修改url变量！
    缺少update_mirror.pl文件！  # 这里提示“缺少update_mirror.pl文件”，上面的提示也写得很清楚，需要把这个文件也传到系统里
    
+   # 把“update_mirror.pl”文件上传到服务器
    [root@centos10 ~]# rz -E
    rz waiting to receive.
    [root@centos10 ~]# ls
@@ -258,7 +266,7 @@ Github：https://github.com/raymond999999/shell
    * 2.修改网卡名         15.设置系统别名                 *
    * 3.设置网络           16.设置vimrc配置文件            *
    * 4.设置主机名         17.安装邮件服务并配置           *
-   * 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+   * 5.设置镜像仓库       18.设置PS1                      *
    * 6.建议安装软件       19.设置默认文本编辑器为vim      *
    * 7.关闭防火墙         20.设置history格式              *
    * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
@@ -298,7 +306,7 @@ Github：https://github.com/raymond999999/shell
    * 2.修改网卡名         15.设置系统别名                 *
    * 3.设置网络           16.设置vimrc配置文件            *
    * 4.设置主机名         17.安装邮件服务并配置           *
-   * 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+   * 5.设置镜像仓库       18.设置PS1                      *
    * 6.建议安装软件       19.设置默认文本编辑器为vim      *
    * 7.关闭防火墙         20.设置history格式              *
    * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *

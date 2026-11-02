@@ -4,15 +4,15 @@
 #Author:        Raymond
 #QQ:            88563128
 #MP:            Raymond运维
-#Date:          2025-10-20
+#Date:          2026-11-02
 #FileName:      reset_v10.sh
 #URL:           https://wx.zsxq.com/group/15555885545422
 #Description:   The reset linux system initialization script supports 
 #               “Rocky Linux 8, 9 and 10, Almalinux 8, 9 and 10,
 #               CentOS 7, CentOS Stream 8, 9 and 10,
-#               Ubuntu Server 18.04, 20.04, 22.04 and 24.04 LTS,
+#               Ubuntu Server 18.04, 20.04, 22.04, 24.04 and 26.04 LTS,
 #               Debian 11 , 12 and 13“ operating systems.
-#Copyright (C): 2025 All rights reserved
+#Copyright (C): 2026 All rights reserved
 #**********************************************************************************
 COLOR="echo -e \\033[01;31m"
 END='\033[0m'
@@ -32,7 +32,9 @@ set_root_login(){
     read -p "请输入密码: " PASSWORD
     echo ${PASSWORD} |sudo -S sed -ri 's@#(PermitRootLogin )prohibit-password@\1yes@' /etc/ssh/sshd_config
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 24 ];then
+        if [ ${MAIN_VERSION_ID} == "18" -o ${MAIN_VERSION_ID} == "20" -o ${MAIN_VERSION_ID} == "22" ];then
+            sudo systemctl restart sshd
+        else
             sudo systemctl restart ssh
 	    fi
     else
@@ -42,15 +44,7 @@ set_root_login(){
 ${PASSWORD}
 ${PASSWORD}
 EOF
-    if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 ];then
-            ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新启动系统后生效！"${END}
-        else
-            ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
-        fi
-    else
-        ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
-    fi
+    ${COLOR}"${PRETTY_NAME}操作系统，root用户登录已设置完成，请重新登录后生效！"${END}
 }
 
 set_rocky_almalinux_centos_7_8_eth(){
@@ -97,40 +91,20 @@ EOF
 
 set_rocky_almalinux_centos_eth(){
     if [ ${MAIN_VERSION_ID} == "7" -o ${MAIN_VERSION_ID} == "8" ];then
-        if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-            ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-        else
-            set_rocky_almalinux_centos_7_8_eth
-	        ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-            sleep 10 && shutdown -r now
-        fi
+        set_rocky_almalinux_centos_7_8_eth
     else
         IP_NUM=`ip addr | awk -F"[: ]" '{print $1}' | grep -v '^$' | wc -l`
         if [ ${IP_NUM} == "2" ];then
-            if [ -f /etc/systemd/network/70-eth0.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_rocky_almalinux_centos_9_10_eth0
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
+            set_rocky_almalinux_centos_9_10_eth0
         else
-            if [ -f /etc/systemd/network/70-eth0.link -a -f /etc/systemd/network/70-eth1.link ];then
-                ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-            else
-                set_rocky_almalinux_centos_9_10_eth0
-                set_rocky_almalinux_centos_9_10_eth1
-	            ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
-                sleep 10 && shutdown -r now
-            fi
+            set_rocky_almalinux_centos_9_10_eth0
+            set_rocky_almalinux_centos_9_10_eth1
         fi
     fi
 }
 
 set_ubuntu_debian_eth(){
-    if grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
-        ${COLOR}"${PRETTY_NAME}操作系统，网卡名配置文件已修改，不用修改！"${END}
-    else
+    if ! grep -Eqi "(net\.ifnames|biosdevname)" /etc/default/grub;then
         sed -ri.bak '/^GRUB_CMDLINE_LINUX=/s@"$@net.ifnames=0 biosdevname=0"@' /etc/default/grub
         if lsblk | grep -q efi;then
             EFI_DIR=`find /boot/efi/ -name "grub.cfg" | awk -F"/" '{print $5}'`
@@ -138,26 +112,24 @@ set_ubuntu_debian_eth(){
         else
             grub-mkconfig -o /boot/grub/grub.cfg >& /dev/null
         fi
-        ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
-        if [ ${MAIN_NAME} == "Ubuntu" ];then
-		    if [ ${MAIN_VERSION_ID} == "18" ];then
-                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/01-netcfg.yaml 
-            elif [ ${MAIN_VERSION_ID} == "20" ];then
-                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/00-installer-config.yaml
-            elif [ ${MAIN_VERSION_ID} == "22" ];then
-                touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
-                cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
+    fi
+    ETHNAME=`ip addr | awk -F"[ :]" '/^2/{print $3}'`
+    if [ ${MAIN_NAME} == "Ubuntu" ];then
+	    if [ ${MAIN_VERSION_ID} == "18" ];then
+            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/01-netcfg.yaml 
+        elif [ ${MAIN_VERSION_ID} == "20" -o ${MAIN_VERSION_ID} == "26" ];then
+            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/00-installer-config.yaml
+        elif [ ${MAIN_VERSION_ID} == "22" ];then
+            touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+            cat > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg <<-EOF
 network: {config: disabled}
 EOF
-                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
-            else
-                sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
-            fi
+            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
         else
-            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/network/interfaces
+            sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/netplan/50-cloud-init.yaml
         fi
-	    ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后,机器会自动重启！"${END}
-        sleep 10 && shutdown -r now
+    else
+        sed -i.bak 's/'${ETHNAME}'/eth0/' /etc/network/interfaces
     fi
 }
 
@@ -171,6 +143,8 @@ set_eth(){
         else
             set_ubuntu_debian_eth
         fi
+	    ${COLOR}"${PRETTY_NAME}操作系统，网卡名已修改成功，10秒后，机器会自动重启！"${END}
+        sleep 10 && shutdown -r now
     fi
 }
 
@@ -326,7 +300,7 @@ network:
       nameservers:
         addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
 EOF
-    else
+    elif [ ${MAIN_VERSION_ID} == "22" -o ${MAIN_VERSION_ID} == "24" ];then
         if [ ${MAIN_VERSION_ID} == "22" ];then
             if [ ! -f /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg ];then
                 touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
@@ -336,6 +310,22 @@ EOF
             fi
         fi
         cat > /etc/netplan/50-cloud-init.yaml <<-EOF
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ${ETHNAME}:
+      dhcp4: no
+      dhcp6: no
+      addresses: [${IP}/${PREFIX}]
+      routes:
+        - to: default
+          via: ${GATEWAY}
+      nameservers:
+        addresses: [${PRIMARY_DNS}, ${BACKUP_DNS}]
+EOF
+    else
+        cat > /etc/netplan/00-installer-config.yaml <<-EOF
 network:
   version: 2
   renderer: networkd
@@ -375,8 +365,15 @@ EOF
       dhcp6: no
       addresses: [${IP2}/${PREFIX2}] 
 EOF
-    else
+    elif [ ${MAIN_VERSION_ID} == "22" -o ${MAIN_VERSION_ID} == "24" ];then
         cat >> /etc/netplan/50-cloud-init.yaml <<-EOF
+    ${ETHNAME2}:
+      dhcp4: no
+      dhcp6: no
+      addresses: [${IP2}/${PREFIX2}] 
+EOF
+    else
+        cat >> /etc/netplan/00-installer-config.yaml <<-EOF
     ${ETHNAME2}:
       dhcp4: no
       dhcp6: no
@@ -465,7 +462,7 @@ aliyun(){
 }
 
 huawei(){
-    MIRROR=repo.huaweicloud.com
+    MIRROR=mirrors.huaweicloud.com
 }
 
 tencent(){
@@ -504,10 +501,6 @@ bfsu(){
     MIRROR=mirrors.bfsu.edu.cn
 }
 
-bjtu(){
-    MIRROR=mirror.bjtu.edu.cn
-}
-
 pku(){
     MIRROR=mirrors.pku.edu.cn
 }
@@ -528,10 +521,6 @@ cqupt(){
     MIRROR=mirrors.cqupt.edu.cn
 }
 
-volces(){
-    MIRROR=mirrors.volces.com
-}
-
 iscas(){
     MIRROR=mirror.iscas.ac.cn
 }
@@ -540,7 +529,7 @@ set_yum_rocky_8_9_10(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\1@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
     OLD_DIR=$(sed -rn '/^.*baseurl=/s@.*=http.*://(.*)/(.*)/\$releasever/.*/$@\2@p' /etc/yum.repos.d/[Rr]ocky*.repo | head -1)
-    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "volces" ];then
+    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "huaweicloud" ];then
         if [ ${OLD_DIR} == '$contentdir' ];then
             sed -i.bak -e 's|^mirrorlist=|#mirrorlist=|g' -e 's|^#baseurl=http://dl.rockylinux.org/$contentdir|baseurl=https://'${MIRROR}'/rockylinux|g' /etc/yum.repos.d/[Rr]ocky*.repo
         elif [ ${OLD_DIR} == 'rocky' ];then
@@ -581,81 +570,76 @@ rocky_8_9_10_base_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)腾讯镜像源
-3)网易镜像源
-4)搜狐镜像源
-5)南京大学镜像源
-6)中国科学技术大学镜像源
-7)上海交通大学镜像源
-8)西安交通大学镜像源
-9)北京大学镜像源
-10)浙江大学镜像源
-11)兰州大学镜像源
-12)火山引擎镜像源
-13)中国科学院软件研究所镜像源
-14)退出
+2)华为镜像源
+3)腾讯镜像源
+4)网易镜像源
+5)搜狐镜像源
+6)南京大学镜像源
+7)中国科学技术大学镜像源
+8)上海交通大学镜像源
+9)西安交通大学镜像源
+10)北京大学镜像源
+11)浙江大学镜像源
+12)兰州大学镜像源
+13)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-14): " NUM
+        read -p "请输入镜像源编号(1-13): " NUM
         case ${NUM} in
         1)
             aliyun
             set_yum_rocky_8_9_10
             ;;
         2)
-            tencent
+            huawei
             set_yum_rocky_8_9_10
             ;;
         3)
-            netease
+            tencent
             set_yum_rocky_8_9_10
             ;;
         4)
-            sohu
+            netease
             set_yum_rocky_8_9_10
             ;;
         5)
-            nju
+            sohu
             set_yum_rocky_8_9_10
             ;;
         6)
-            ustc
+            nju
             set_yum_rocky_8_9_10
             ;;
         7)
-            sjtu
+            ustc
             set_yum_rocky_8_9_10
             ;;
         8)
-            xjtu
+            sjtu
             set_yum_rocky_8_9_10
             ;;
         9)
-            pku
+            xjtu
             set_yum_rocky_8_9_10
             ;;
         10)
-            zju
+            pku
             set_yum_rocky_8_9_10
             ;;
         11)
-            lzu
+            zju
             set_yum_rocky_8_9_10
             ;;
         12)
-            volces
+            lzu
             set_yum_rocky_8_9_10
             ;;
         13)
-            iscas
-            set_yum_rocky_8_9_10
-            ;;
-        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-14)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-13)！"${END}
             ;;
         esac
     done
@@ -695,13 +679,12 @@ almalinux_8_9_10_base_menu(){
 6)浙江大学镜像源
 7)兰州大学镜像源
 8)重庆邮电大学镜像源
-9)火山引擎镜像源
-10)中国科学院软件研究所镜像源
-11)退出
+9)中国科学院软件研究所镜像源
+10)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-11): " NUM
+        read -p "请输入镜像源编号(1-10): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -736,18 +719,14 @@ EOF
             set_yum_almalinux_8_9_10
             ;;
         9)
-            volces
-            set_yum_almalinux_8_9_10
-            ;;
-        10)
             iscas
             set_yum_almalinux_8_9_10
             ;;
-        11)
+        10)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-11)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-10)！"${END}
             ;;
         esac
     done
@@ -779,13 +758,12 @@ almalinux_9_10_devel_menu(){
 6)浙江大学镜像源
 7)兰州大学镜像源
 8)重庆邮电大学镜像源
-9)火山引擎镜像源
-10)中国科学院软件研究所镜像源
-11)退出
+9)中国科学院软件研究所镜像源
+10)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-11): " NUM
+        read -p "请输入镜像源编号(1-10): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -820,18 +798,14 @@ EOF
             set_devel_almalinux_9_10
             ;;
         9)
-            volces
-            set_devel_almalinux_9_10
-            ;;
-        10)
             iscas
             set_devel_almalinux_9_10
             ;;
-        11)
+        10)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-11)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-10)！"${END}
             ;;
         esac
     done
@@ -874,71 +848,51 @@ centos_stream_9_10_base_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)华为镜像源
-3)腾讯镜像源
-4)清华镜像源
-5)南京大学镜像源
-6)中国科学技术大学镜像源
-7)北京外国语大学镜像源
-8)北京大学镜像源
-9)重庆邮电大学镜像源
-10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+2)腾讯镜像源
+3)清华镜像源
+4)南京大学镜像源
+5)北京大学镜像源
+6)重庆邮电大学镜像源
+7)中国科学院软件研究所镜像源
+8)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-8): " NUM
         case ${NUM} in
         1)
             aliyun
             set_yum_centos_stream_9_10
             ;;
         2)
-            huawei
-            set_yum_centos_stream_9_10
-            ;;
-        3)
             tencent
             set_yum_centos_stream_9_10
             ;;
-        4)
+        3)
             tuna
             set_yum_centos_stream_9_10
             ;;
-        5)
+        4)
             nju
             set_yum_centos_stream_9_10
             ;;
-        6)
-            ustc
-            set_yum_centos_stream_9_10
-            ;;
-        7)
-            bfsu
-            set_yum_centos_stream_9_10
-            ;;
-        8)
+        5)
             pku
             set_yum_centos_stream_9_10
             ;;
-        9)
+        6)
             cqupt
             set_yum_centos_stream_9_10
             ;;
-        10)
-            volces
-            set_yum_centos_stream_9_10
-            ;;
-        11)
+        7)
             iscas
             set_yum_centos_stream_9_10
             ;;
-        12)
+        8)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-8)！"${END}
             ;;
         esac
     done
@@ -962,71 +916,51 @@ centos_stream_8_base_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)华为镜像源
-3)腾讯镜像源
-4)清华镜像源
-5)南京大学镜像源
-6)中国科学技术大学镜像源
-7)北京外国语大学镜像源
-8)北京大学镜像源
-9)重庆邮电大学镜像源
-10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+2)腾讯镜像源
+3)清华镜像源
+4)南京大学镜像源
+5)北京大学镜像源
+6)重庆邮电大学镜像源
+7)中国科学院软件研究所镜像源
+8)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-8): " NUM
         case ${NUM} in
         1)
             aliyun
             set_yum_centos_stream_8
             ;;
         2)
-            huawei
-            set_yum_centos_stream_8
-            ;;
-        3)
             tencent
             set_yum_centos_stream_8
             ;;
-        4)
+        3)
             tuna
             set_yum_centos_stream_8
             ;;
-        5)
+        4)
             nju
             set_yum_centos_stream_8
             ;;
-        6)
-            ustc
-            set_yum_centos_stream_8
-            ;;
-        7)
-            bfsu
-            set_yum_centos_stream_8
-            ;;
-        8)
+        5)
             pku
             set_yum_centos_stream_8
             ;;
-        9)
+        6)
             cqupt
             set_yum_centos_stream_8
             ;;
-        10)
-            volces
-            set_yum_centos_stream_8
-            ;;
-        11)
+        7)
             iscas
             set_yum_centos_stream_8
             ;;
-        12)
+        8)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-8)！"${END}
             ;;
         esac
     done
@@ -1090,19 +1024,16 @@ rocky_almalinux_centos_8_9_10_epel_menu(){
 6)南京大学镜像源
 7)中国科学技术大学镜像源
 8)上海交通大学镜像源
-9)西安交通大学镜像源
 9)北京外国语大学镜像源
-11)北京大学镜像源
-12)浙江大学镜像源
-13)兰州大学镜像源
-14)重庆邮电大学镜像源
-15)火山引擎镜像源
-16)中国科学院软件研究所镜像源
-17)退出
+10)北京大学镜像源
+11)浙江大学镜像源
+12)兰州大学镜像源
+13)重庆邮电大学镜像源
+14)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-17): " NUM
+        read -p "请输入镜像源编号(1-14): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1137,42 +1068,30 @@ EOF
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
         9)
-            xjtu
-            set_epel_rocky_almalinux_centos_8_9_10
-            ;;
-        10)
             bfsu
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
-        11)
+        10)
             pku
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
-        12)
+        11)
             zju
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
-        13)
+        12)
             lzu
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
-        14)
+        13)
             cqupt
             set_epel_rocky_almalinux_centos_8_9_10
             ;;
-        15)
-            volces
-            set_epel_rocky_almalinux_centos_8_9_10
-            ;;
-        16)
-            iscas
-            set_epel_rocky_almalinux_centos_8_9_10
-            ;;
-        17)
+        14)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-14)！"${END}
             ;;
         esac
     done
@@ -1196,71 +1115,51 @@ centos_7_base_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)华为镜像源
-3)腾讯镜像源
-4)清华镜像源
-5)南京大学镜像源
-6)中国科学技术大学镜像源
-7)北京外国语大学镜像源
-8)北京大学镜像源
-9)重庆邮电大学镜像源
-10)火山引擎镜像源
-11)中国科学院软件研究所镜像源
-12)退出
+2)腾讯镜像源
+3)清华镜像源
+4)南京大学镜像源
+5)北京大学镜像源
+6)重庆邮电大学镜像源
+7)中国科学院软件研究所镜像源
+8)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-12): " NUM
+        read -p "请输入镜像源编号(1-8): " NUM
         case ${NUM} in
         1)
             aliyun
             set_yum_centos_7
             ;;
         2)
-            huawei
-            set_yum_centos_7
-            ;;
-        3)
             tencent
             set_yum_centos_7
             ;;
-        4)
+        3)
             tuna
             set_yum_centos_7
             ;;
-        5)
+        4)
             nju
             set_yum_centos_7
             ;;
-        6)
-            ustc
-            set_yum_centos_7
-            ;;
-        7)
-            bfsu
-            set_yum_centos_7
-            ;;
-        8)
+        5)
             pku
             set_yum_centos_7
             ;;
-        9)
+        6)
             cqupt
             set_yum_centos_7
             ;;
-        10)
-            volces
-            set_yum_centos_7
-            ;;
-        11)
+        7)
             iscas
             set_yum_centos_7
             ;;
-        12)
+        8)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-12)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-8)！"${END}
             ;;
         esac
     done
@@ -1271,7 +1170,7 @@ set_epel_centos_7(){
     MIRROR_URL=`echo ${MIRROR} | awk -F"." '{print $2}'`
     OLD_MIRROR=$(awk -F'/' '/^baseurl=/{print $3}' /etc/yum.repos.d/epel*.repo | head -1)
     OLD_DIR=$(awk -F'/' '/^baseurl=/{print $4}' /etc/yum.repos.d/epel*.repo | head -1)
-    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "tencent" ];then
+    if [ ${MIRROR_URL} == "aliyun" -o ${MIRROR_URL} == "huaweicloud" -o ${MIRROR_URL} == "tencent" -o ${MIRROR_URL} == "ustc" -o ${MIRROR_URL} == "zju" ];then
         if grep -Eqi "^#baseurl" /etc/yum.repos.d/epel*.repo;then
 	        sed -i.bak -e 's!^metalink=!#metalink=!g' -e 's!^#baseurl=!baseurl=!g' -e 's!https\?://download\.fedoraproject\.org/pub/epel!https://'${MIRROR}'/epel-archive!g' -e 's!https\?://download\.example/pub/epel!https://'${MIRROR}'/epel!g' /etc/yum.repos.d/epel*.repo
         elif [ ${OLD_DIR} == 'pub' ];then
@@ -1298,31 +1197,46 @@ centos_7_epel_menu(){
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
 1)阿里镜像源
-2)腾讯镜像源
-3)fedora镜像源
-4)退出
+2)华为镜像源
+3)腾讯镜像源
+4)中国科学技术大学镜像源
+5)浙江大学镜像源
+6)fedora镜像源
+7)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-4): " NUM
+        read -p "请输入镜像源编号(1-7): " NUM
         case ${NUM} in
         1)
             aliyun
             set_epel_centos_7
             ;;
         2)
-            tencent
+            huawei
             set_epel_centos_7
             ;;
         3)
-            archive_fedora
+            tencent
             set_epel_centos_7
             ;;
         4)
+            ustc
+            set_epel_centos_7
+            ;;
+        5)
+            zju
+            set_epel_centos_7
+            ;;
+        6)
+            archive_fedora
+            set_epel_centos_7
+            ;;
+        7)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-4)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-7)！"${END}
             ;;
         esac
     done
@@ -1495,7 +1409,7 @@ set_ubuntu_apt(){
     ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
 }
 
-apt_menu(){
+ubuntu_menu(){
     while true;do
         echo -e "\E[$[RANDOM%7+31];1m"
         cat <<-EOF
@@ -1510,18 +1424,16 @@ apt_menu(){
 9)上海交通大学镜像源
 10)西安交通大学镜像源
 11)北京外国语大学镜像源
-12)北京交通大学镜像源
-13)北京大学镜像源
-14)浙江大学镜像源
-15)兰州大学镜像源
-16)重庆邮电大学镜像源
-17)火山引擎镜像源
-18)中国科学院软件研究所镜像源
-19)退出
+12)北京大学镜像源
+13)浙江大学镜像源
+14)兰州大学镜像源
+15)重庆邮电大学镜像源
+16)中国科学院软件研究所镜像源
+17)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-19): " NUM
+        read -p "请输入镜像源编号(1-17): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1568,38 +1480,30 @@ EOF
             set_ubuntu_apt
             ;;
         12)
-            bjtu
-            set_ubuntu_apt
-            ;;
-        13)
             pku
             set_ubuntu_apt
             ;;
-        14)
+        13)
             zju
             set_ubuntu_apt
             ;;
-        15)
+        14)
             lzu
             set_ubuntu_apt
             ;;
-        16)
+        15)
             cqupt
             set_ubuntu_apt
             ;;
-        17)
-            volces
-            set_ubuntu_apt
-            ;;
-        18)
+        16)
             iscas
             set_ubuntu_apt
             ;;
-        19)
+        17)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-19)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
             ;;
         esac
     done
@@ -1608,7 +1512,7 @@ EOF
 set_debian_apt(){
     OLD_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian/? $(lsb_release -cs) main.*@\2@p" /etc/apt/sources.list`
     SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian-security $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
-    sed -ri.bak -e 's/'${OLD_MIRROR}'/'${MIRROR}'/g' -e 's/'${SECURITY_MIRROR}'/'${MIRROR}'/g' -e 's/^(deb cdrom.*)/#\1/g' /etc/apt/sources.list
+    sed -ri.bak -e 's@http.*://'${OLD_MIRROR}'@https://'${MIRROR}'@g' -e 's@http.*://'${SECURITY_MIRROR}'@https://'${MIRROR}'@g' -e 's/^(deb cdrom.*)/#\1/g' /etc/apt/sources.list
     ${COLOR}"更新镜像源中，请稍等......"${END}
     apt update &> /dev/null
     ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
@@ -1629,18 +1533,16 @@ debian_menu(){
 9)上海交通大学镜像源
 10)西安交通大学镜像源
 11)北京外国语大学镜像源
-12)北京交通大学镜像源
-13)北京大学镜像源
-14)浙江大学镜像源
-15)兰州大学镜像源
-16)重庆邮电大学镜像源
-17)火山引擎镜像源
-18)中国科学院软件研究所镜像源
-19)退出
+12)北京大学镜像源
+13)浙江大学镜像源
+14)兰州大学镜像源
+15)重庆邮电大学镜像源
+16)中国科学院软件研究所镜像源
+17)退出
 EOF
         echo -e '\E[0m'
 
-        read -p "请输入镜像源编号(1-19): " NUM
+        read -p "请输入镜像源编号(1-17): " NUM
         case ${NUM} in
         1)
             aliyun
@@ -1687,38 +1589,89 @@ EOF
             set_debian_apt
             ;;
         12)
-            bjtu
-            set_debian_apt
-            ;;
-        13)
             pku
             set_debian_apt
             ;;
-        14)
+        13)
             zju
             set_debian_apt
             ;;
-        15)
+        14)
             lzu
             set_debian_apt
             ;;
-        16)
+        15)
             cqupt
             set_debian_apt
             ;;
-        17)
-            volces
-            set_debian_apt
-            ;;
-        18)
+        16)
             iscas
             set_debian_apt
             ;;
-        19)
+        17)
             break
             ;;
         *)
-            ${COLOR}"输入错误，请输入正确的数字(1-19)！"${END}
+            ${COLOR}"输入错误，请输入正确的数字(1-17)！"${END}
+            ;;
+        esac
+    done
+}
+
+set_old_debian_apt(){
+    OLD_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian/? $(lsb_release -cs) main.*@\2@p" /etc/apt/sources.list`
+    SECURITY_MIRROR=`sed -rn "s@^deb http(.*)://(.*)/debian-security $(lsb_release -cs)-security main.*@\2@p" /etc/apt/sources.list`
+    sed -ri.bak -e 's@http.*://'${OLD_MIRROR}'@https://'${MIRROR}'/debian-archive@g' -e 's@http.*://'${SECURITY_MIRROR}'@https://'${MIRROR}'/debian-archive@g' -e 's/^(deb cdrom.*)/#\1/g' /etc/apt/sources.list
+    ${COLOR}"更新镜像源中，请稍等......"${END}
+    apt update &> /dev/null
+    ${COLOR}"${PRETTY_NAME}操作系统，镜像源设置完成！"${END}
+}
+
+old_debian_menu(){
+    while true;do
+        echo -e "\E[$[RANDOM%7+31];1m"
+        cat <<-EOF
+1)阿里镜像源
+2)华为镜像源
+3)腾讯镜像源
+4)网易镜像源
+5)南京大学镜像源
+6)中国科学院软件研究所镜像源
+7)退出
+EOF
+        echo -e '\E[0m'
+
+        read -p "请输入镜像源编号(1-7): " NUM
+        case ${NUM} in
+        1)
+            aliyun
+            set_old_debian_apt
+            ;;
+        2)
+            huawei
+            set_old_debian_apt
+            ;;
+        3)
+            tencent
+            set_old_debian_apt
+            ;;
+        4)
+            netease
+            set_old_debian_apt
+            ;;
+        5)
+            nju
+            set_old_debian_apt
+            ;;
+        6)
+            iscas
+            set_old_debian_apt
+            ;;
+        7)
+            break
+            ;;
+        *)
+            ${COLOR}"输入错误，请输入正确的数字(1-7)！"${END}
             ;;
         esac
     done
@@ -1731,10 +1684,14 @@ set_mirror_repository(){
         almalinux_menu
     elif [ ${MAIN_NAME} == "CentOS" ];then
         centos_menu
-    elif [ ${MAIN_NAME} == "Ubuntu" ];then
-        apt_menu
+    elif [ ${MAIN_NAME} == "Debian" ];then
+        if [ ${MAIN_VERSION_ID} == 11 ];then
+            old_debian_menu
+        else
+            debian_menu
+        fi
     else
-        debian_menu
+        ubuntu_menu
     fi
 }
 
@@ -1930,11 +1887,13 @@ optimization_ssh(){
         sed -ri.bak -e 's/^#(UseDNS).*/\1 no/' -e 's/^#(GSSAPIAuthentication).*/\1 no/' /etc/ssh/sshd_config
     fi
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 24 ];then
-            sudo systemctl restart ssh
+        if [ ${MAIN_VERSION_ID} == "18" -o ${MAIN_VERSION_ID} == "20" -o ${MAIN_VERSION_ID} == "22" ];then
+            systemctl restart sshd
+        else
+            systemctl restart ssh
 	    fi
     else
-        sudo systemctl restart sshd
+        systemctl restart sshd
     fi
     ${COLOR}"${PRETTY_NAME}操作系统，SSH已优化完成！"${END}
 }
@@ -1945,11 +1904,13 @@ set_ssh_port(){
     read -p "请输入端口号: " PORT
     sed -i 's/#Port 22/Port '${PORT}'/' /etc/ssh/sshd_config
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 24 ];then
-            sudo systemctl restart ssh
+        if [ ${MAIN_VERSION_ID} == "18" -o ${MAIN_VERSION_ID} == "20" -o ${MAIN_VERSION_ID} == "22" ];then
+            systemctl restart sshd
+        else
+            systemctl restart ssh
 	    fi
     else
-        sudo systemctl restart sshd
+        systemctl restart sshd
     fi
     ${COLOR}"${PRETTY_NAME}操作系统，更改SSH端口号已完成，请重新登陆后生效！"${END}
 }
@@ -2275,7 +2236,7 @@ ubuntu_remove(){
     fi
 }
 
-ubuntu_20_22_24_remove_snap(){
+ubuntu_20_22_24_26_remove_snap(){
     dpkg -s snapd &> /dev/null || { ${COLOR}"snap已卸载！"${END};exit; }
     systemctl disable snapd.service && systemctl disable snapd.socket && systemctl disable snapd.seeded.service
     if [ ${MAIN_NAME} == "Ubuntu" ];then
@@ -2303,8 +2264,8 @@ EOF
 
 ubuntu_remove_snap(){
     if [ ${MAIN_NAME} == "Ubuntu" ];then
-        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
-            ubuntu_20_22_24_remove_snap
+        if [ ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 -o ${MAIN_VERSION_ID} == 26 ];then
+            ubuntu_20_22_24_26_remove_snap
         else
            ${COLOR}"${PRETTY_NAME}操作系统，默认没有安装snap！"${END} 
         fi
@@ -2323,7 +2284,7 @@ menu(){
 * 2.修改网卡名         15.设置系统别名                 *
 * 3.设置网络           16.设置vimrc配置文件            *
 * 4.设置主机名         17.安装邮件服务并配置           *
-* 5.设置镜像仓库       18.设置PS1(请进入选择颜色)      *
+* 5.设置镜像仓库       18.设置PS1                      *
 * 6.建议安装软件       19.设置默认文本编辑器为vim      *
 * 7.关闭防火墙         20.设置history格式              *
 * 8.禁用SELinux        21.禁用ctrl+alt+del重启系统功能 *
@@ -2546,7 +2507,7 @@ elif [ ${MAIN_NAME} == "CentOS" ];then
         main
     fi
 elif [ ${MAIN_NAME} == "Ubuntu" ];then
-    if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 ];then
+    if [ ${MAIN_VERSION_ID} == 18 -o ${MAIN_VERSION_ID} == 20 -o ${MAIN_VERSION_ID} == 22 -o ${MAIN_VERSION_ID} == 24 -o ${MAIN_VERSION_ID} == 26 ];then
         main
     fi
 elif [ ${MAIN_NAME} == 'Debian' ];then
